@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -329,10 +329,10 @@ def move_to(object, x, y=None,
             d_o_e=lambda arg: _root_window.dooneevent(arg),
             d_w=tkinter._tkinter.DONT_WAIT):
     if y is None:
-        try: 
+        try:
             x, y = x
-        except: 
-            raise IncomprehensibleCoordinates
+        except:
+            raise IncomprehensibleCoordinates()
 
     horiz = True
     newCoords = []
@@ -354,7 +354,8 @@ def move_by(object, x, y=None,
             d_w=tkinter._tkinter.DONT_WAIT, lift=False):
     if y is None:
         try: x, y = x
-        except: raise Exception('incomprehensible coordinates')
+        except:
+            raise IncomprehensibleCoordinates()
 
     horiz = True
     newCoords = []
