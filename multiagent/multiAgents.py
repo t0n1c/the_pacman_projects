@@ -16,8 +16,8 @@ from util import manhattan_heuristic
 from game import Directions, Agent
 import random
 import util
-from util import get_euclidean_distance as get_distance, slice_matrix_vector, get_actions_to_slicers
-from search import AnyFoodSearchProblem, breadthFirstSearch, PositionSearchProblem, aStarSearch
+from util import get_euclidean_distance as get_distance, slice_matrix_vector
+from search import AnyFoodSearchProblem, uniformCostSearch, PositionSearchProblem, aStarSearch
 import os
 import sys
 
@@ -33,7 +33,6 @@ DUMMY_VALUE = MAX_PENALTY - 1
 
 
 
-ACTIONS_TO_SLICERS = get_actions_to_slicers()
 
 class ReflexAgent(Agent):
     """
@@ -63,21 +62,18 @@ class ReflexAgent(Agent):
         # Choose one of the best actions
         scores = [self.evaluationFunction(gameState, action) for action in legal_moves]
 
-        if is_pacman_lost(scores, legal_moves):
-            scores = [self.evaluationFunction(gameState, action, True) for action in legal_moves]
-
         if len(self.precomputed_actions) > 0: # fixed actions mode
             if self.precomputed_actions[0] in get_dangerous_actions(legal_moves, scores):
                 self.precomputed_actions = list()
             else:
                 return self.precomputed_actions.pop(0)
 
-        bestScore = max(scores)
-        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
-        return legal_moves[chosenIndex]
+        best_score = max(scores)
+        best_indices = [index for index in range(len(scores)) if scores[index] == best_score]
+        chosen_index = random.choice(best_indices) # Pick randomly among the best
+        return legal_moves[chosen_index]
 
-    def evaluationFunction(self, current_game_state, action, pacman_is_lost=False):
+    def evaluationFunction(self, current_game_state, action):
         """
         Design a better evaluation function here.
 
@@ -95,9 +91,9 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
 
         successor_game_state = current_game_state.generatePacmanSuccessor(action)
-        methods_names = ['getWalls','getPacmanPosition','getFood','getGhostStates']
+        methods_names = ['getPacmanPosition','getFood','getGhostStates']
         new_info_state = [getattr(successor_game_state, name)() for name in methods_names]
-        walls, pacman_pos, food, ghost_states = new_info_state
+        pacman_pos, food, ghost_states = new_info_state
 
         ghost_infos = [(g.getPosition(),g.scaredTimer) for g in ghost_states]
         current_capsules = current_game_state.getCapsules()
@@ -121,12 +117,9 @@ class ReflexAgent(Agent):
             self.precomputed_actions = get_scared_ghost_actions(scared_ghosts,**kwargs_psp)
             return DUMMY_VALUE
 
-        elif pacman_is_lost:
-            self.precomputed_actions = get_first_food_actions(current_game_state)
-            return DUMMY_VALUE
-
         else:
-            return -get_distance_first_food(pacman_pos, current_game_state, food, walls, action)
+            return -get_distance_to_closest_food(pacman_pos, successor_game_state,
+                                                     current_game_state.getFood())
 
 
 
@@ -159,9 +152,9 @@ def get_scared_ghost_actions(scared_ghosts, **kwargs_psp):
     return min(ghostbuster_ways, key=len)
 
 
-def get_first_food_actions(current_game_state):
-    problem = AnyFoodSearchProblem(current_game_state)
-    return breadthFirstSearch(problem)
+def get_first_food_actions(game_state):
+    problem = AnyFoodSearchProblem(game_state)
+    return uniformCostSearch(problem)
 
 
 def get_closest_capsule(pacman_pos, capsules):
@@ -169,37 +162,16 @@ def get_closest_capsule(pacman_pos, capsules):
     return capsules[all_distances.index(min(all_distances))]
 
 
-def is_pacman_lost(scores, legal_moves):
-    # any/all getdistance in a row vs euclidean
-    return all(s == -MAX_PENALTY for s,move in zip(scores,legal_moves) if move != 'Stop')
-
-
 def get_dangerous_actions(legal_moves, scores):
     return [m for m,s in zip(legal_moves,scores) if s == float('-Inf')]
 
 
-def get_distance_first_food(pacman_pos, current_game_state, food, walls, action):
-    """Return the nearest food position (the distance) in *food_subvector* from (new_x,new_y)
-    position. If first food was at coordinate (new_x,new_y) the returned value will be zero
-    (our dear Pacman ate it as a consequence of its action). Otherwise will return either the
-    actual distance to the first one or a high penalty if a wall was found before some food.
-    """
+def get_distance_to_closest_food(pacman_pos, successor_game_state, current_maze_food):
     new_x, new_y = pacman_pos
-    slice_by, step = ACTIONS_TO_SLICERS[action]
-    food_subvector, walls_subvector = get_subvectors(new_x, new_y, slice_by, step, food, walls)
-    current_maze_food = current_game_state.getFood()
-
     if current_maze_food[new_x][new_y]:
         return 0
-    for index,(food,wall) in enumerate(zip(food_subvector,walls_subvector)):
-        if food:
-            return index
-        if wall:
-            return MAX_PENALTY
+    return len(get_first_food_actions(successor_game_state))
 
-
-def get_subvectors(x, y, slice_by, step, *args):
-    return [slice_matrix_vector(matrix, x, y, slice_by, step) for matrix in args]
 
 
 def scoreEvaluationFunction(currentGameState):

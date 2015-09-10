@@ -120,22 +120,6 @@ def get_euclidean_distance(point1, point2):
     return math.sqrt(sum((c1-c2)**2 for c1,c2 in zip(point1,point2)))
 
 
-def get_actions_to_slicers():
-    """This function binds Pacman posible actions (excluding Stop action) to the posible ways of
-        slicing a matrix vector given a point. Basically, it performs something like
-        the following map:
-
-        North -> upward
-        South -> downward
-        East  -> forward
-        West  -> backward
-
-    """
-    actions = ['North','South','East','West']
-    ways_to_slice = [(slice_by,step) for slice_by in ['column','row'] for step in [1,-1]]
-    return dict(zip(actions,ways_to_slice))
-
-
 def slice_matrix_vector(matrix, x, y, slice_by, step):
     """ This function slices a column of the given matrix, from the x,y position forward or
     backward according yo the step value(idem for rows).
