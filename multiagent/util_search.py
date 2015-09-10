@@ -14,11 +14,10 @@
 
 import sys
 import inspect
-import heapq
-import random
-import math
-import queue
+import heapq, random
 import io
+import queue
+
 
 class FixedRandom:
     def __init__(self):
@@ -115,48 +114,9 @@ class FixedRandom:
         self.random = random.Random()
         self.random.setstate(fixedState)
 
-
-def get_euclidean_distance(point1, point2):
-    return math.sqrt(sum((c1-c2)**2 for c1,c2 in zip(point1,point2)))
-
-
-def get_actions_to_slicers():
-    """This function binds Pacman posible actions (excluding Stop action) to the posible ways of
-        slicing a matrix vector given a point. Basically, it performs something like
-        the following map:
-
-        North -> upward
-        South -> downward
-        East  -> forward
-        West  -> backward
-
-    """
-    actions = ['North','South','East','West']
-    ways_to_slice = [(slice_by,step) for slice_by in ['column','row'] for step in [1,-1]]
-    return dict(zip(actions,ways_to_slice))
-
-
-def slice_matrix_vector(matrix, x, y, slice_by, step):
-    """ This function slices a column of the given matrix, from the x,y position forward or
-    backward according yo the step value(idem for rows).
-    """
-    if slice_by == 'column':
-        return matrix[x][y::step]
-    elif slice_by == 'row':
-        return [row[y] for row in matrix[x::step]]
-
-
-def manhattan_heuristic(position, problem, info={}):
-    "The Manhattan distance heuristic for a PositionSearchProblem"
-    xy1 = position
-    xy2 = problem.goal
-    return manhattan_distance(xy1, xy2)
-
-
-def manhattan_distance( xy1, xy2 ):
-    "Returns the Manhattan distance between points xy1 and xy2"
-    return abs( xy1[0] - xy2[0] ) + abs( xy1[1] - xy2[1] )
-
+"""
+ Data structures useful for implementing SearchAgents
+"""
 
 class ComparableMixin(object):
     """A mixin class taken from

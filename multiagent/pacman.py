@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -44,9 +44,10 @@ from game import Game
 from game import Directions
 from game import Actions
 from util import nearestPoint
-from util import manhattanDistance
+from util import manhattan_distance
 import util, layout
 import sys, types, time, random, os
+from copy import deepcopy
 
 ###################################################
 # YOUR INTERFACE TO THE PACMAN WORLD: A GameState #
@@ -351,7 +352,7 @@ class PacmanRules:
         # Eat
         next = pacmanState.configuration.getPosition()
         nearest = nearestPoint( next )
-        if manhattanDistance( nearest, next ) <= 0.5 :
+        if manhattan_distance( nearest, next ) <= 0.5 :
             # Remove food
             PacmanRules.consume( nearest, state )
     applyAction = staticmethod( applyAction )
@@ -447,7 +448,7 @@ class GhostRules:
     collide = staticmethod( collide )
 
     def canKill( pacmanPosition, ghostPosition ):
-        return manhattanDistance( ghostPosition, pacmanPosition ) <= COLLISION_TOLERANCE
+        return manhattan_distance( ghostPosition, pacmanPosition ) <= COLLISION_TOLERANCE
     canKill = staticmethod( canKill )
 
     def placeGhost(state, ghostState):
@@ -634,6 +635,7 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
 
     for i in range( numGames ):
         beQuiet = i < numTraining
+        agent_copy = deepcopy(pacman)
         if beQuiet:
                 # Suppress output and graphics
             import textDisplay
@@ -653,6 +655,7 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
             components = {'layout': layout, 'actions': game.moveHistory}
             pickle.dump(components, f)
             f.close()
+        pacman = agent_copy
 
     if (numGames-numTraining) > 0:
         scores = [game.state.getScore() for game in games]

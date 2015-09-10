@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -12,11 +12,28 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-from util import manhattanDistance
-from game import Directions
-import random, util
+from util import manhattan_heuristic
+from game import Directions, Agent
+import random
+import util
+from util import get_euclidean_distance as get_distance, slice_matrix_vector, get_actions_to_slicers
+from search import AnyFoodSearchProblem, breadthFirstSearch, PositionSearchProblem, aStarSearch
+import os
+import sys
 
-from game import Agent
+
+# THR stands for THRESHOLD
+DANGER_THR = 1.0
+CAPSULE_THR = 2.0
+MAX_PENALTY = 99999999
+DUMMY_VALUE = MAX_PENALTY - 1
+
+# https://inst.eecs.berkeley.edu/~cs188/fa10/slides/FA10%20cs188%20lecture%202%20--%20uninformed%20search%20(6PP).pdf
+#http://www.cs.cmu.edu/~sandholm/cs15-381/Agents.ppt
+
+
+
+ACTIONS_TO_SLICERS = get_actions_to_slicers()
 
 class ReflexAgent(Agent):
     """
@@ -28,6 +45,9 @@ class ReflexAgent(Agent):
       headers.
     """
 
+    def __init__(self):
+        super().__init__()
+        self.precomputed_actions = list()
 
     def getAction(self, gameState):
         """
@@ -39,19 +59,25 @@ class ReflexAgent(Agent):
         some Directions.X for some X in the set {North, South, West, East, Stop}
         """
         # Collect legal moves and successor states
-        legalMoves = gameState.getLegalActions()
-
+        legal_moves = gameState.getLegalActions()
         # Choose one of the best actions
-        scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
+        scores = [self.evaluationFunction(gameState, action) for action in legal_moves]
+
+        if is_pacman_lost(scores, legal_moves):
+            scores = [self.evaluationFunction(gameState, action, True) for action in legal_moves]
+
+        if len(self.precomputed_actions) > 0: # fixed actions mode
+            if self.precomputed_actions[0] in get_dangerous_actions(legal_moves, scores):
+                self.precomputed_actions = list()
+            else:
+                return self.precomputed_actions.pop(0)
+
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        return legal_moves[chosenIndex]
 
-        "Add more of your code here if you want to"
-
-        return legalMoves[chosenIndex]
-
-    def evaluationFunction(self, currentGameState, action):
+    def evaluationFunction(self, current_game_state, action, pacman_is_lost=False):
         """
         Design a better evaluation function here.
 
@@ -67,14 +93,114 @@ class ReflexAgent(Agent):
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
-        successorGameState = currentGameState.generatePacmanSuccessor(action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
-        newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        successor_game_state = current_game_state.generatePacmanSuccessor(action)
+        methods_names = ['getWalls','getPacmanPosition','getFood','getGhostStates']
+        new_info_state = [getattr(successor_game_state, name)() for name in methods_names]
+        walls, pacman_pos, food, ghost_states = new_info_state
+
+        ghost_infos = [(g.getPosition(),g.scaredTimer) for g in ghost_states]
+        current_capsules = current_game_state.getCapsules()
+        kwargs_psp = dict(gameState=current_game_state, warn=False)
+        scared_ghosts = [tuple(map(int, xy)) for xy,timer in ghost_infos if timer > 0.1]
+
+        if not is_pacman_safe(pacman_pos, ghost_infos):
+            return float('-Inf')
+
+        elif action == 'Stop':
+            return -(MAX_PENALTY + 1)
+
+        elif is_capsule(pacman_pos, current_capsules):
+            return 1
+
+        elif is_any_capsule_close(pacman_pos, current_capsules, CAPSULE_THR):
+            self.precomputed_actions =get_capsule_actions(pacman_pos,current_capsules,**kwargs_psp)
+            return DUMMY_VALUE
+
+        elif len(scared_ghosts) > 0:
+            self.precomputed_actions = get_scared_ghost_actions(scared_ghosts,**kwargs_psp)
+            return DUMMY_VALUE
+
+        elif pacman_is_lost:
+            self.precomputed_actions = get_first_food_actions(current_game_state)
+            return DUMMY_VALUE
+
+        else:
+            return -get_distance_first_food(pacman_pos, current_game_state, food, walls, action)
+
+
+
+def is_pacman_safe(pacman_pos, ghost_infos):
+    check_timers = (scared_timer > 0 for _,scared_timer in ghost_infos)
+    check_pos = (get_distance(pacman_pos, p2) > DANGER_THR for p2,_ in ghost_infos)
+    return all(cond1 or cond2 for cond1,cond2 in zip(check_timers,check_pos))
+
+
+def is_capsule(pacman_pos, capsules):
+    return is_any_capsule_close(pacman_pos, capsules, 0.0)
+
+
+def is_any_capsule_close(pacman_pos, capsules, threshold):
+    return any([get_distance(pacman_pos, c_pos) <= threshold for c_pos in capsules])
+
+
+def get_capsule_actions(pacman_pos, capsules, **kwargs_psp):
+    """Closest capsule set of actions
+    """
+    capsule_pos = get_closest_capsule(pacman_pos, capsules)
+    problem = PositionSearchProblem(goal=capsule_pos, **kwargs_psp)
+    return aStarSearch(problem)
+
+
+def get_scared_ghost_actions(scared_ghosts, **kwargs_psp):
+    """Closest scared ghost set of actions"""
+    problems = [PositionSearchProblem(goal=xy, **kwargs_psp) for xy in scared_ghosts]
+    ghostbuster_ways = [aStarSearch(problem) for problem in problems]
+    return min(ghostbuster_ways, key=len)
+
+
+def get_first_food_actions(current_game_state):
+    problem = AnyFoodSearchProblem(current_game_state)
+    return breadthFirstSearch(problem)
+
+
+def get_closest_capsule(pacman_pos, capsules):
+    all_distances = [(get_distance(pacman_pos, c_pos)) for c_pos in capsules]
+    return capsules[all_distances.index(min(all_distances))]
+
+
+def is_pacman_lost(scores, legal_moves):
+    # any/all getdistance in a row vs euclidean
+    return all(s == -MAX_PENALTY for s,move in zip(scores,legal_moves) if move != 'Stop')
+
+
+def get_dangerous_actions(legal_moves, scores):
+    return [m for m,s in zip(legal_moves,scores) if s == float('-Inf')]
+
+
+def get_distance_first_food(pacman_pos, current_game_state, food, walls, action):
+    """Return the nearest food position (the distance) in *food_subvector* from (new_x,new_y)
+    position. If first food was at coordinate (new_x,new_y) the returned value will be zero
+    (our dear Pacman ate it as a consequence of its action). Otherwise will return either the
+    actual distance to the first one or a high penalty if a wall was found before some food.
+    """
+    new_x, new_y = pacman_pos
+    slice_by, step = ACTIONS_TO_SLICERS[action]
+    food_subvector, walls_subvector = get_subvectors(new_x, new_y, slice_by, step, food, walls)
+    current_maze_food = current_game_state.getFood()
+
+    if current_maze_food[new_x][new_y]:
+        return 0
+    for index,(food,wall) in enumerate(zip(food_subvector,walls_subvector)):
+        if food:
+            return index
+        if wall:
+            return MAX_PENALTY
+
+
+def get_subvectors(x, y, slice_by, step, *args):
+    return [slice_matrix_vector(matrix, x, y, slice_by, step) for matrix in args]
+
 
 def scoreEvaluationFunction(currentGameState):
     """

@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -12,7 +12,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-from util import manhattanDistance
+from util import manhattan_distance
 from game import Grid
 import os
 import random
@@ -80,7 +80,7 @@ class Layout:
 
     def getFurthestCorner(self, pacPos):
         poses = [(1,1), (1, self.height - 2), (self.width - 2, 1), (self.width - 2, self.height - 2)]
-        dist, pos = max([(manhattanDistance(p, pacPos), p) for p in poses])
+        dist, pos = max([(manhattan_distance(p, pacPos), p) for p in poses])
         return pos
 
     def isVisibleFrom(self, ghostPos, pacPos, pacDirection):
