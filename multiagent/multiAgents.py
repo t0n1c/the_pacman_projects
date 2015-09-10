@@ -149,13 +149,13 @@ def get_capsule_actions(pacman_pos, capsules, **kwargs_psp):
     """
     capsule_pos = get_closest_capsule(pacman_pos, capsules)
     problem = PositionSearchProblem(goal=capsule_pos, **kwargs_psp)
-    return aStarSearch(problem)
+    return aStarSearch(problem, manhattan_heuristic)
 
 
 def get_scared_ghost_actions(scared_ghosts, **kwargs_psp):
     """Closest scared ghost set of actions"""
     problems = [PositionSearchProblem(goal=xy, **kwargs_psp) for xy in scared_ghosts]
-    ghostbuster_ways = [aStarSearch(problem) for problem in problems]
+    ghostbuster_ways = [aStarSearch(problem, manhattan_heuristic) for problem in problems]
     return min(ghostbuster_ways, key=len)
 
 
