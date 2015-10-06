@@ -20,13 +20,14 @@ from util import get_euclidean_distance as get_distance, slice_matrix_vector
 from search import AnyFoodSearchProblem, uniformCostSearch, PositionSearchProblem, aStarSearch
 import os
 import sys
+from itertools import chain
 
 
 # THR stands for THRESHOLD
 DANGER_THR = 1.0
 CAPSULE_THR = 2.0
 MAX_PENALTY = 99999999
-DUMMY_VALUE = MAX_PENALTY - 1
+
 
 # https://inst.eecs.berkeley.edu/~cs188/fa10/slides/FA10%20cs188%20lecture%202%20--%20uninformed%20search%20(6PP).pdf
 #http://www.cs.cmu.edu/~sandholm/cs15-381/Agents.ppt
@@ -111,15 +112,15 @@ class ReflexAgent(Agent):
 
         elif is_any_capsule_close(pacman_pos, current_capsules, CAPSULE_THR):
             self.precomputed_actions =get_capsule_actions(pacman_pos,current_capsules,**kwargs_psp)
-            return DUMMY_VALUE
+            return MAX_PENALTY - 1
 
         elif len(scared_ghosts) > 0:
-            self.precomputed_actions = get_scared_ghost_actions(scared_ghosts,**kwargs_psp)
-            return DUMMY_VALUE
+            self.precomputed_actions = get_scared_ghost_actions(scared_ghosts, **kwargs_psp)
+            return MAX_PENALTY - 1
 
         else:
             return -get_distance_to_closest_food(pacman_pos, successor_game_state,
-                                                     current_game_state.getFood())
+                                                 current_game_state.getFood())
 
 
 
@@ -173,7 +174,6 @@ def get_distance_to_closest_food(pacman_pos, successor_game_state, current_maze_
     return len(get_first_food_actions(successor_game_state))
 
 
-
 def scoreEvaluationFunction(currentGameState):
     """
       This default evaluation function just returns the score of the state.
@@ -204,12 +204,13 @@ class MultiAgentSearchAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
 
+
 class MinimaxAgent(MultiAgentSearchAgent):
     """
       Your minimax agent (question 2)
     """
 
-    def getAction(self, gameState):
+    def getAction(self, game_state):
         """
           Returns the minimax action from the current gameState using self.depth
           and self.evaluationFunction.
@@ -226,8 +227,44 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        root_successors = zip(game_state.getLegalActions(0), get_successors(game_state, 0))
+        scores = [(action, self.min_value(succ,1,self.depth)) for action,succ in root_successors]
+        return max(scores, key=lambda pair: pair[1])[0]
+
+
+    def min_value(self, game_state, agent_index, depth):
+        if depth == 0 or len(game_state.getLegalActions(agent_index)) == 0:
+            return self.evaluationFunction(game_state)
+        successors = get_successors(game_state, agent_index)
+        minmax_fn, next_agent_index, depth = self._set_up_minmax(game_state, agent_index, depth)
+        return min([minmax_fn(s, next_agent_index, depth) for s in successors] + [float('Inf')])
+
+
+    def max_value(self, game_state, agent_index, depth):
+        if depth == 0 or len(game_state.getLegalActions(agent_index)) == 0:
+            return self.evaluationFunction(game_state)
+        successors = get_successors(game_state, agent_index)
+        return max([self.min_value(s, 1, depth) for s in successors] + [float('-Inf')])
+
+
+    def _set_up_minmax(self, game_state, agent_index, depth):
+        if agent_index == game_state.getNumAgents() - 1:
+            minmax_fn = self.max_value
+            next_agent_index = 0
+            depth -= 1
+        else:
+            minmax_fn = self.min_value
+            next_agent_index = agent_index + 1
+
+        return minmax_fn, next_agent_index, depth
+
+
+def get_successors(current_state, agent_index):
+    successors = list()
+    for action in current_state.getLegalActions(agent_index):
+        successors.append(current_state.generateSuccessor(agent_index, action))
+    return successors
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
