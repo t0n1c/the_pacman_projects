@@ -255,15 +255,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
         else:
             minmax_fn = self.min_value
             next_agent_index = agent_index + 1
-
         return minmax_fn, next_agent_index, depth
 
 
 def get_successors(current_state, agent_index):
-    successors = list()
     for action in current_state.getLegalActions(agent_index):
-        successors.append(current_state.generateSuccessor(agent_index, action))
-    return successors
+        yield current_state.generateSuccessor(agent_index, action)
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -271,12 +268,58 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       Your minimax agent with alpha-beta pruning (question 3)
     """
 
-    def getAction(self, gameState):
+    def getAction(self, game_state):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        root_successors = zip(game_state.getLegalActions(0), get_successors(game_state, 0))
+        alpha, beta = float('-Inf'), float('Inf')
+        current_max = float('-Inf')
+        scores = list()
+        for action,succ in root_successors:
+            min_v = self.min_value(succ, 1, self.depth, alpha, beta)
+            scores.append((action,min_v))
+            current_max = max(current_max, min_v)
+            alpha = max(alpha, current_max)
+        return max(scores, key=lambda pair: pair[1])[0]
+
+
+    def min_value(self, game_state, agent_index, depth, alpha, beta):
+        if depth == 0 or len(game_state.getLegalActions(agent_index)) == 0:
+            return self.evaluationFunction(game_state)
+        successors = get_successors(game_state, agent_index)
+        minmax_fn, next_agent_index, depth = self._set_up_minmax(game_state, agent_index, depth)
+        current_min = float('Inf')
+        for succ in successors:
+            current_min = min(current_min, minmax_fn(succ, next_agent_index, depth, alpha, beta))
+            if current_min < alpha:
+                return current_min
+            beta = min(beta, current_min)
+        return current_min
+
+
+    def max_value(self, game_state, agent_index, depth, alpha, beta):
+        if depth == 0 or len(game_state.getLegalActions(agent_index)) == 0:
+            return self.evaluationFunction(game_state)
+        successors = get_successors(game_state, agent_index)
+        current_max = float('-Inf')
+        for succ in successors:
+            current_max = max(current_max, self.min_value(succ, 1, depth, alpha, beta))
+            if current_max > beta:
+                return current_max
+            alpha = max(alpha, current_max)
+        return current_max
+
+
+    def _set_up_minmax(self, game_state, agent_index, depth):
+        if agent_index == game_state.getNumAgents() - 1:
+            minmax_fn = self.max_value
+            next_agent_index = 0
+            depth -= 1
+        else:
+            minmax_fn = self.min_value
+            next_agent_index = agent_index + 1
+        return minmax_fn, next_agent_index, depth
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
