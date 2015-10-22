@@ -329,9 +329,10 @@ def move_to(object, x, y=None,
             d_o_e=lambda arg: _root_window.dooneevent(arg),
             d_w=tkinter._tkinter.DONT_WAIT):
     if y is None:
-        try: x, y = x
+        try:
+            x, y = x
         except:
-            raise IncomprehensibleCoordinates()
+            raise  IncomprehensibleCoordinates()
 
     horiz = True
     newCoords = []

@@ -43,7 +43,7 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
 
         # might be useful in your code later...
         # this is a list of all features in the training set.
-        self.features = list(set([ f for datum in trainingData for f in datum.keys() ]));
+        self.features = list(set([ f for datum in trainingData for f in list(datum.keys()) ]));
 
         if (self.automaticTuning):
             kgrid = [0.001, 0.01, 0.05, 0.1, 0.5, 1, 5, 10, 20, 50]
@@ -80,7 +80,7 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
             datum = trainingData[i]
             label = trainingLabels[i]
             commonPrior[label] += 1
-            for feat, value in datum.items():
+            for feat, value in list(datum.items()):
                 commonCounts[(feat,label)] += 1
                 if value > 0: # assume binary value
                     commonConditionalProb[(feat, label)] += 1
@@ -91,11 +91,11 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
             counts = util.Counter()
 
             # get counts from common training step
-            for key, val in commonPrior.items():
+            for key, val in list(commonPrior.items()):
                 prior[key] += val
-            for key, val in commonCounts.items():
+            for key, val in list(commonCounts.items()):
                 counts[key] += val
-            for key, val in commonConditionalProb.items():
+            for key, val in list(commonConditionalProb.items()):
                 conditionalProb[key] += val
 
             # smoothing:
@@ -106,7 +106,7 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
 
             # normalizing:
             prior.normalize()
-            for x, count in conditionalProb.items():
+            for x, count in list(conditionalProb.items()):
                 conditionalProb[x] = count * 1.0 / counts[x]
 
             self.prior = prior
@@ -116,7 +116,7 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
             predictions = self.classify(validationData)
             accuracyCount =  [predictions[i] == validationLabels[i] for i in range(len(validationLabels))].count(True)
 
-            print "Performance on validation set for k=%f: (%.1f%%)" % (k, 100.0*accuracyCount/len(validationLabels))
+            print("Performance on validation set for k=%f: (%.1f%%)" % (k, 100.0*accuracyCount/len(validationLabels)))
             if accuracyCount > bestAccuracyCount:
                 bestParams = (prior, conditionalProb, k)
                 bestAccuracyCount = accuracyCount
@@ -150,7 +150,7 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
 
         for label in self.legalLabels:
             logJoint[label] = math.log(self.prior[label])
-            for feat, value in datum.items():
+            for feat, value in list(datum.items()):
                 if value > 0:
                     logJoint[label] += math.log(self.conditionalProb[feat,label])
                 else:

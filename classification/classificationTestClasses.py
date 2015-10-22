@@ -54,11 +54,11 @@ def readDigitData(trainingSize=100, testSize=100):
     rawTestData = samples.loadDataFile("digitdata/testimages", testSize,DIGIT_DATUM_WIDTH,DIGIT_DATUM_HEIGHT)
     testLabels = samples.loadLabelsFile("digitdata/testlabels", testSize)
     try:
-        print "Extracting features..."
+        print("Extracting features...")
         featureFunction = dataClassifier.basicFeatureExtractorDigit
-        trainingData = map(featureFunction, rawTrainingData)
-        validationData = map(featureFunction, rawValidationData)
-        testData = map(featureFunction, rawTestData)
+        trainingData = list(map(featureFunction, rawTrainingData))
+        validationData = list(map(featureFunction, rawValidationData))
+        testData = list(map(featureFunction, rawTestData))
     except:
         display("An exception was raised while extracting basic features: \n %s" % getExceptionTraceBack())
     return (trainingData, trainingLabels, validationData, validationLabels, rawTrainingData, rawValidationData, testData, testLabels, rawTestData)
@@ -140,8 +140,8 @@ DATASETS = {
 }
 
 DATASETS_LEGAL_LABELS = {
-    "smallDigitData": range(10),
-    "bigDigitData": range(10),
+    "smallDigitData": list(range(10)),
+    "bigDigitData": list(range(10)),
     "tinyDataSet": [-1,1],
     "tinyDataSetPeceptronAndMira": [-1,1],
     "suicideData": ["EAST", 'WEST', 'NORTH', 'SOUTH', 'STOP'],
@@ -155,15 +155,15 @@ DATASETS_LEGAL_LABELS = {
 def getAccuracy(data, classifier, featureFunction=dataClassifier.basicFeatureExtractorDigit):
     trainingData, trainingLabels, validationData, validationLabels, rawTrainingData, rawValidationData, testData, testLabels, rawTestData = data
     if featureFunction != dataClassifier.basicFeatureExtractorDigit:
-        trainingData = map(featureFunction, rawTrainingData)
-        validationData = map(featureFunction, rawValidationData)
-        testData = map(featureFunction, rawTestData)
+        trainingData = list(map(featureFunction, rawTrainingData))
+        validationData = list(map(featureFunction, rawValidationData))
+        testData = list(map(featureFunction, rawTestData))
     classifier.train(trainingData, trainingLabels, validationData, validationLabels)
     guesses = classifier.classify(testData)
     correct = [guesses[i] == testLabels[i] for i in range(len(testLabels))].count(True)
     acc = 100.0 * correct / len(testLabels)
     serialized_guesses = ", ".join([str(guesses[i]) for i in range(len(testLabels))])
-    print str(correct), ("correct out of " + str(len(testLabels)) + " (%.1f%%).") % (acc)
+    print(str(correct), ("correct out of " + str(len(testLabels)) + " (%.1f%%).") % (acc))
     return acc, serialized_guesses
 
 

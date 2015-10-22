@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -18,7 +18,7 @@ import random
 import string
 import time
 import types
-import Tkinter
+import tkinter
 
 _Windows = sys.platform == 'win32'  # True if on Win95/98/NT
 
@@ -32,11 +32,15 @@ _canvas_col = None      # Current colour (set to black below)
 _canvas_tsize = 12
 _canvas_tserifs = 0
 
+
+class IncomprehensibleCoordinates(Exception):
+    pass
+
 def formatColor(r, g, b):
     return '#%02x%02x%02x' % (int(r * 255), int(g * 255), int(b * 255))
 
 def colorToVector(color):
-    return map(lambda x: int(x, 16) / 256.0, [color[1:3], color[3:5], color[5:7]])
+    return [int(x, 16) / 256.0 for x in [color[1:3], color[3:5], color[5:7]]]
 
 if _Windows:
     _canvas_tfonts = ['times new roman', 'lucida console']
@@ -68,14 +72,14 @@ def begin_graphics(width=640, height=480, color=formatColor(0, 0, 0), title=None
     _bg_color = color
 
     # Create the root window
-    _root_window = Tkinter.Tk()
+    _root_window = tkinter.Tk()
     _root_window.protocol('WM_DELETE_WINDOW', _destroy_window)
     _root_window.title(title or 'Graphics Window')
     _root_window.resizable(0, 0)
 
     # Create the canvas object
     try:
-        _canvas = Tkinter.Canvas(_root_window, width=width, height=height)
+        _canvas = tkinter.Canvas(_root_window, width=width, height=height)
         _canvas.pack()
         draw_background()
         _canvas.update()
@@ -147,8 +151,8 @@ def end_graphics():
             sleep(1)
             if _root_window != None:
                 _root_window.destroy()
-        except SystemExit, e:
-            print 'Ending graphics raised an exception:', e
+        except SystemExit as e:
+            print('Ending graphics raised an exception:', e)
     finally:
         _root_window = None
         _canvas = None
@@ -194,7 +198,7 @@ def circle(pos, r, outlineColor, fillColor, endpoints=None, style='pieslice', wi
 def image(pos, file="../../blueghost.gif"):
     x, y = pos
     # img = PhotoImage(file=file)
-    return _canvas.create_image(x, y, image = Tkinter.PhotoImage(file=file), anchor = Tkinter.NW)
+    return _canvas.create_image(x, y, image = tkinter.PhotoImage(file=file), anchor = tkinter.NW)
 
 
 def refresh():
@@ -287,16 +291,16 @@ def _clear_keys(event=None):
     _keyswaiting = {}
     _got_release = None
 
-def keys_pressed(d_o_e=Tkinter.tkinter.dooneevent,
-                 d_w=Tkinter.tkinter.DONT_WAIT):
+def keys_pressed(d_o_e=lambda arg: _root_window.dooneevent(arg),
+                 d_w=tkinter._tkinter.DONT_WAIT):
     d_o_e(d_w)
     if _got_release:
         d_o_e(d_w)
-    return _keysdown.keys()
+    return list(_keysdown.keys())
 
 def keys_waiting():
     global _keyswaiting
-    keys = _keyswaiting.keys()
+    keys = list(_keyswaiting.keys())
     _keyswaiting = {}
     return keys
 
@@ -310,8 +314,8 @@ def wait_for_keys():
     return keys
 
 def remove_from_screen(x,
-                       d_o_e=Tkinter.tkinter.dooneevent,
-                       d_w=Tkinter.tkinter.DONT_WAIT):
+                       d_o_e=lambda arg: _root_window.dooneevent(arg),
+                       d_w=tkinter._tkinter.DONT_WAIT):
     _canvas.delete(x)
     d_o_e(d_w)
 
@@ -322,11 +326,13 @@ def _adjust_coords(coord_list, x, y):
     return coord_list
 
 def move_to(object, x, y=None,
-            d_o_e=Tkinter.tkinter.dooneevent,
-            d_w=Tkinter.tkinter.DONT_WAIT):
+            d_o_e=lambda arg: _root_window.dooneevent(arg),
+            d_w=tkinter._tkinter.DONT_WAIT):
     if y is None:
-        try: x, y = x
-        except: raise  'incomprehensible coordinates'
+        try:
+            x, y = x
+        except:
+            raise  IncomprehensibleCoordinates()
 
     horiz = True
     newCoords = []
@@ -344,11 +350,12 @@ def move_to(object, x, y=None,
     d_o_e(d_w)
 
 def move_by(object, x, y=None,
-            d_o_e=Tkinter.tkinter.dooneevent,
-            d_w=Tkinter.tkinter.DONT_WAIT, lift=False):
+            d_o_e=lambda arg: _root_window.dooneevent(arg),
+            d_w=tkinter._tkinter.DONT_WAIT, lift=False):
     if y is None:
         try: x, y = x
-        except: raise Exception, 'incomprehensible coordinates'
+        except:
+            raise IncomprehensibleCoordinates()
 
     horiz = True
     newCoords = []

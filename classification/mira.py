@@ -41,7 +41,7 @@ class MiraClassifier:
     def train(self, trainingData, trainingLabels, validationData, validationLabels):
         "Outside shell to call your method. Do not modify this method."
 
-        self.features = trainingData[0].keys() # this could be useful for your code later...
+        self.features = list(trainingData[0].keys()) # this could be useful for your code later...
 
         if (self.automaticTuning):
             Cgrid = [0.002, 0.004, 0.008]
