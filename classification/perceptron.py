@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -13,7 +13,7 @@
 
 
 # Perceptron implementation
-import util
+from util import Counter
 PRINT = True
 
 class PerceptronClassifier:
@@ -29,7 +29,7 @@ class PerceptronClassifier:
         self.max_iterations = max_iterations
         self.weights = {}
         for label in legalLabels:
-            self.weights[label] = util.Counter() # this is the data-structure you should use
+            self.weights[label] = Counter() # this is the data-structure you should use
 
     def setWeights(self, weights):
         assert len(weights) == len(self.legalLabels);
@@ -53,9 +53,13 @@ class PerceptronClassifier:
 
         for iteration in range(self.max_iterations):
             print("Starting iteration ", iteration, "...")
-            for i in range(len(trainingData)):
-                "*** YOUR CODE HERE ***"
-                util.raiseNotDefined()
+            for tr_features,tr_label in zip(trainingData,trainingLabels):
+                scores = Counter([(label, w*tr_features) for label,w in self.weights.items()])
+                predicted_label = scores.argMax()
+                if tr_label != predicted_label:
+                    self.weights[tr_label] += tr_features
+                    self.weights[predicted_label] -= tr_features
+
 
     def classify(self, data ):
         """
@@ -66,7 +70,7 @@ class PerceptronClassifier:
         """
         guesses = []
         for datum in data:
-            vectors = util.Counter()
+            vectors = Counter()
             for l in self.legalLabels:
                 vectors[l] = self.weights[l] * datum
             guesses.append(vectors.argMax())
@@ -80,6 +84,6 @@ class PerceptronClassifier:
         featuresWeights = []
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        raise NotImplementedError("Keep calm not implemented yet.")
 
         return featuresWeights
