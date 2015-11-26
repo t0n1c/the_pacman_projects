@@ -483,22 +483,17 @@ def foodHeuristic(state, problem):
     """
     position, food_grid = state
 
-    def get_upper_leftmost_food_position():
-        for x,row in enumerate(food_grid):
-            for y,food in enumerate(row):
-                if food:
-                    return x,y
-        return position
+    distances_to_food = [(i, get_manhattan_distance(position, i)) for i in food_grid.asList()]
+    furthest_food_distance = max(distances_to_food, key=lambda pair: pair[1], default=(0.0,0.0))[1]
 
-    distance = get_manhattan_distance(position,get_upper_leftmost_food_position())
     #input(problem.walls[1][1])
     #TEMP hardcoded
-    if any([food_grid[x][y] for x,y in [(14,5)]]):
-        return max(abs(position[0] - 14) + food_grid.count(),distance)
-    elif any([food_grid[x][y] for x,y in [(1,4),(1,5)]]):
-        return max(abs(position[0] - 1) + food_grid.count(),distance)
-    else:
-        return max( food_grid.count(),distance)
+    # if any([food_grid[x][y] for x,y in [(14,5)]]):
+    #     return max(abs(position[0] - 14) + food_grid.count(),distance)
+    # elif any([food_grid[x][y] for x,y in [(1,4),(1,5)]]):
+    #     return max(abs(position[0] - 1) + food_grid.count(),distance)
+    # else:
+    return max(furthest_food_distance, food_grid.count())
 
 
 

@@ -14,6 +14,7 @@
 
 # Perceptron implementation
 from util import Counter
+from heapq import nlargest
 PRINT = True
 
 class PerceptronClassifier:
@@ -81,9 +82,10 @@ class PerceptronClassifier:
         """
         Returns a list of the 100 features with the greatest weight for some label
         """
-        featuresWeights = []
+        return [k for k,_ in nlargest(100, self.weights[label].items(), key=lambda pair: pair[1])]
 
-        "*** YOUR CODE HERE ***"
-        raise NotImplementedError("Keep calm not implemented yet.")
 
-        return featuresWeights
+
+
+
+
