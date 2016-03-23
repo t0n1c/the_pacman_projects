@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -13,19 +13,24 @@
 
 
 # imports from python standard library
-import grading
-import imp
+# import imp
+import importlib
 import optparse
 import os
+from os.path import dirname, join
 import re
 import sys
-import projectParams
 import random
+
+from . import grading
+from . import projectParams
+
+# try:
+#     from pacman import GameState
+# except:
+#     pass
+
 random.seed(0)
-try: 
-    from pacman import GameState
-except:
-    pass
 
 # register arguments and set default values
 def readCommand(argv):
@@ -121,16 +126,16 @@ def loadModuleString(moduleSource):
     #
     #f = StringIO(moduleCodeDict[k])
     #tmp = imp.load_module(k, f, k, (".py", "r", imp.PY_SOURCE))
-    tmp = imp.new_module(k)
-    exec(moduleCodeDict[k], tmp.__dict__)
-    setModuleName(tmp, k)
-    return tmp
+    # tmp = imp.new_module(k)
+    # exec(moduleCodeDict[k], tmp.__dict__)
+    # setModuleName(tmp, k)
+    # return tmp
+    pass
 
-import py_compile
+# import py_compile
 
 def loadModuleFile(moduleName, filePath):
-    with open(filePath, 'r') as f:
-        return imp.load_module(moduleName, f, "%s.py" % moduleName, (".py", "r", imp.PY_SOURCE))
+    return importlib.import_module('.' + moduleName, package=__package__)
 
 
 def readFile(path, root=""):
@@ -244,8 +249,7 @@ def evaluate(generateSolutions, testRoot, moduleDict, exceptionMap=ERROR_HINT_MA
             printTestCase=False, questionToGrade=None, display=None):
     # imports of testbench code.  note that the testClasses import must follow
     # the import of student code due to dependencies
-    import testParser
-    import testClasses
+    from . import testParser, testClasses
     for module in moduleDict:
         setattr(sys.modules[__name__], module, moduleDict[module])
 
@@ -317,7 +321,7 @@ def getDisplay(graphicsByDefault, options=None):
             return graphicsDisplay.PacmanGraphics(1, frameTime=.05)
         except ImportError:
             pass
-    import textDisplay
+    from . import textDisplay
     return textDisplay.NullGraphics()
 
 
@@ -346,6 +350,13 @@ if __name__ == '__main__':
     if options.runTest != None:
         runTest(options.runTest, moduleDict, printTestCase=options.printTestCase, display=getDisplay(True, options))
     else:
-        evaluate(options.generateSolutions, options.testRoot, moduleDict,
+        evaluate(options.generateSolutions, join(dirname(__file__), options.testRoot), moduleDict,
             edxOutput=options.edxOutput, muteOutput=options.muteOutput, printTestCase=options.printTestCase,
             questionToGrade=options.gradeQuestion, display=getDisplay(options.gradeQuestion!=None, options))
+
+
+
+
+
+
+

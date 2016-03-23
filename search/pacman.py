@@ -39,14 +39,13 @@ code to run a game.  This file is divided into three sections:
 To play your first game, type 'python pacman.py' from the command line.
 The keys are 'a', 's', 'd', and 'w' to move (or arrow keys).  Have fun!
 """
-from game import GameStateData
-from game import Game
-from game import Directions
-from game import Actions
-from util import nearestPoint
-from util import manhattanDistance
-import util, layout
 import sys, types, time, random, os
+import importlib
+from os.path import dirname, join
+
+from .game import GameStateData, Game, Directions, Actions
+from .util import nearestPoint, manhattanDistance
+from . import util, layout, textDisplay, graphicsDisplay
 
 ###################################################
 # YOUR INTERFACE TO THE PACMAN WORLD: A GameState #
@@ -557,14 +556,11 @@ def readCommand( argv ):
 
     # Choose a display format
     if options.quietGraphics:
-        import textDisplay
         args['display'] = textDisplay.NullGraphics()
     elif options.textGraphics:
-        import textDisplay
         textDisplay.SLEEP_TIME = options.frameTime
         args['display'] = textDisplay.PacmanGraphics()
     else:
-        import graphicsDisplay
         args['display'] = graphicsDisplay.PacmanGraphics(options.zoom, frameTime = options.frameTime)
     args['numGames'] = options.numGames
     args['record'] = options.record
@@ -591,15 +587,14 @@ def loadAgent(pacman, nographics):
         pythonPathDirs = pythonPathStr.split(':')
     else:
         pythonPathDirs = pythonPathStr.split(';')
-    pythonPathDirs.append('.')
-
+    pythonPathDirs.append(dirname(__file__))
     for moduleDir in pythonPathDirs:
         if not os.path.isdir(moduleDir): continue
-        moduleNames = [f for f in os.listdir(moduleDir) if f.endswith('gents.py')]
+        moduleNames = [f.replace('.py','') for f in os.listdir(moduleDir) if f.endswith('gents.py')]
         for modulename in moduleNames:
             try:
-                module = __import__(modulename[:-3])
-            except ImportError:
+                module = importlib.import_module('.' + modulename, package=__package__)
+            except TypeError:
                 continue
             if pacman in dir(module):
                 if nographics and modulename == 'keyboardAgents.py':

@@ -1,22 +1,22 @@
-python pacman.py
-python pacman.py --layout testMaze --pacman GoWestAgent
-python pacman.py --layout tinyMaze --pacman GoWestAgent
-python pacman.py -h
-python pacman.py -l tinyMaze -p SearchAgent -a fn=tinyMazeSearch
-python pacman.py -l tinyMaze -p SearchAgent
-python pacman.py -l mediumMaze -p SearchAgent
-python pacman.py -l bigMaze -z .5 -p SearchAgent
-python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs
-python pacman.py -l bigMaze -p SearchAgent -a fn=bfs -z .5
-python eightpuzzle.py
-python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs
-python pacman.py -l mediumDottedMaze -p StayEastSearchAgent
-python pacman.py -l mediumScaryMaze -p StayWestSearchAgent
-python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic 
-python pacman.py -l tinyCorners -p SearchAgent -a fn=bfs,prob=CornersProblem
-python pacman.py -l mediumCorners -p SearchAgent -a fn=bfs,prob=CornersProblem
-python pacman.py -l mediumCorners -p AStarCornersAgent -z 0.5
-python pacman.py -l testSearch -p AStarFoodSearchAgent
-python pacman.py -l trickySearch -p AStarFoodSearchAgent
-python pacman.py -l bigSearch -p ClosestDotSearchAgent -z .5 
-python pacman.py -l bigSearch -p ApproximateSearchAgent -z .5 -q 
+python3 -m search.pacman -q
+python3 -m search.pacman --layout testMaze --pacman GoWestAgent -q
+python3 -m search.pacman --layout tinyMaze --pacman GoWestAgent -q
+python3 -m search.pacman -h -q
+python3 -m search.pacman -l tinyMaze -p SearchAgent -a fn=tinyMazeSearch -q
+python3 -m search.pacman -l tinyMaze -p SearchAgent -q
+python3 -m search.pacman -l mediumMaze -p SearchAgent -q
+python3 -m search.pacman -l bigMaze -z .5 -p SearchAgent -q
+python3 -m search.pacman -l mediumMaze -p SearchAgent -a fn=bfs -q
+python3 -m search.pacman -l bigMaze -p SearchAgent -a fn=bfs -z .5 -q
+python3 -m search.eightpuzzle -q
+python3 -m search.pacman -l mediumMaze -p SearchAgent -a fn=ucs -q
+python3 -m search.pacman -l mediumDottedMaze -p StayEastSearchAgent -q
+python3 -m search.pacman -l mediumScaryMaze -p StayWestSearchAgent -q
+python3 -m search.pacman -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic -q
+python3 -m search.pacman -l tinyCorners -p SearchAgent -a fn=bfs,prob=CornersProblem -q
+python3 -m search.pacman -l mediumCorners -p SearchAgent -a fn=bfs,prob=CornersProblem -q
+python3 -m search.pacman -l mediumCorners -p AStarCornersAgent -z 0.5 -q
+python3 -m search.pacman -l testSearch -p AStarFoodSearchAgent -q
+python3 -m search.pacman -l trickySearch -p AStarFoodSearchAgent -q
+python3 -m search.pacman -l bigSearch -p ClosestDotSearchAgent -z .5 -q
+python3 -m search.pacman -l bigSearch -p ApproximateSearchAgent -z .5 -q

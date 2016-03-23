@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -20,7 +20,7 @@
 # John DeNero (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # For more info, see http://inst.eecs.berkeley.edu/~cs188/sp09/pacman.html
 
-from util import *
+from .util import *
 import time, os
 import traceback
 import sys
@@ -77,7 +77,7 @@ class Configuration:
     """
 
     def __init__(self, pos, direction):
-        self.pos = pos
+        self.pos = Point(*pos)
         self.direction = direction
 
     def getPosition(self):
@@ -219,12 +219,8 @@ class Grid:
     def count(self, item =True ):
         return sum([x.count(item) for x in self.data])
 
-    def asList(self, key = True):
-        list = []
-        for x in range(self.width):
-            for y in range(self.height):
-                if self[x][y] == key: list.append( (x,y) )
-        return list
+    def asList(self, key=True):
+        return [Point(x,y) for x in range(self.width) for y in range(self.height) if self[x][y] == key]
 
     def packBits(self):
         """

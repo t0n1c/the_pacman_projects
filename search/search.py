@@ -17,8 +17,8 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
-from util import raiseNotDefined, ComparableMixin, Stack, Queue, PriorityQueue
-from game import Directions
+from .util import raiseNotDefined, ComparableMixin, Stack, Queue, PriorityQueue
+from .game import Directions
 
 
 class SearchProblem:
@@ -66,7 +66,6 @@ class SearchProblem:
 
 class SearchFailure(Exception):
     pass
-
 
 class SearchNode(ComparableMixin):
     def __init__(self, state, action, node_cost, heuristic_cost, parent=None):
@@ -133,6 +132,7 @@ def generic_search(problem, data_structure, heuristic=nullHeuristic, check_cost=
     start_node = SearchNode(start_state,Directions.STOP,0,heuristic(start_state,problem))
     frontier.put(start_node)
     open_nodes_cost[start_node] = start_node.cost
+
     while len(frontier) != 0:
         current_node = frontier.get()
         closed_nodes_cost[current_node] = current_node.cost
@@ -141,8 +141,8 @@ def generic_search(problem, data_structure, heuristic=nullHeuristic, check_cost=
         successors = problem.getSuccessors(current_node.state)
         for state,action,cost in successors:
             total_cost = cost + current_node.node_cost
-            heuristic_cost = heuristic(state,problem)
-            next_node = SearchNode(state,action,total_cost,heuristic_cost,current_node)
+            heuristic_cost = heuristic(state, problem)
+            next_node = SearchNode(state, action, total_cost, heuristic_cost, current_node)
             args = next_node, open_nodes_cost, closed_nodes_cost, check_cost, check_only_closed
             if check_search_node(*args):
                 open_nodes_cost[next_node] = next_node.cost
@@ -157,7 +157,7 @@ def tinyMazeSearch(problem):
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
     sequence of moves will be incorrect, so only use this for tinyMaze.
     """
-    from game import Directions
+    from .game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]

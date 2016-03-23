@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -13,13 +13,12 @@
 
 
 import re
-import testClasses
 import textwrap
 
 # import project specific code
-import layout
-import pacman
-from search import SearchProblem
+from . import testClasses, layout, pacman
+from .search import SearchProblem
+from .game import Directions, Actions
 
 # helper function for printing solutions in solution files
 def wrap_solution(solution):
@@ -288,7 +287,6 @@ class PacmanSearchTest(testClasses.TestCase):
         if type(solution) != type([]):
             return None, None, 'The result of %s must be a list. (Instead, it is %s)' % (self.alg, type(solution))
 
-        from game import Directions
         dirs = list(Directions.LEFT.keys())
         if [el in dirs for el in solution].count(False) != 0:
             return None, None, 'Output of %s must be a list of actions from game.Directions' % self.alg
@@ -366,7 +364,6 @@ class PacmanSearchTest(testClasses.TestCase):
         return True
 
 
-from game import Actions
 def getStatesFromPath(start, path):
     "Returns the list of states visited along the path"
     vis = [start]

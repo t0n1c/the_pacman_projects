@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -12,11 +12,13 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-from util import manhattanDistance
-from game import Grid
+from os.path import dirname, join
 import os
 import random
 from functools import reduce
+
+from .util import manhattanDistance
+from .game import Grid
 
 VISIBILITY_MATRIX_CACHE = {}
 
@@ -144,6 +146,7 @@ def getLayout(name, back = 2):
     return layout
 
 def tryToLoad(fullname):
+    fullname = join(dirname(__file__), fullname)
     if(not os.path.exists(fullname)): return None
     f = open(fullname)
     try: return Layout([line.strip() for line in f])

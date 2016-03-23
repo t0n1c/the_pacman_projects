@@ -17,7 +17,12 @@ import inspect
 import heapq, random
 import io
 import queue
+from collections import namedtuple
 
+
+
+Point = namedtuple('Point', ['x', 'y'])
+CornerState = namedtuple('CornerState', ['position','reached_corners'])
 
 class FixedRandom:
     def __init__(self):
