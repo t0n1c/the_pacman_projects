@@ -12,7 +12,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-STUDENT_CODE_DEFAULT = 'searchAgents.py,search.py'
-PROJECT_TEST_CLASSES = 'searchTestClasses.py'
-PROJECT_NAME = 'Project 1: Search'
-BONUS_PIC = True
+STUDENT_CODE_DEFAULT = {'search' : 'searchAgents.py,search.py'}
+PROJECT_TEST_CLASSES = {'search' : 'searchTestClasses.py'}
+PROJECT_NAME = {'search' : 'Project 1: Search'}
+BONUS_PIC = {'search' : True}

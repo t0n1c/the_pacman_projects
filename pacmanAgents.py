@@ -16,8 +16,7 @@ import random
 
 from .pacman import Directions
 from .game import Agent
-from . import game
-from . import util
+from . import game, util
 
 class LeftTurnAgent(game.Agent):
     "An agent that turns left at every opportunity"

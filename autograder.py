@@ -22,7 +22,7 @@ import re
 import sys
 import random
 
-from . import grading
+from . import grading, testParser, testClasses
 from . import projectParams
 
 # try:
@@ -40,9 +40,16 @@ def readCommand(argv):
                       dest = 'testRoot',
                       default = 'test_cases',
                       help = 'Root test directory which contains subdirectories corresponding to each question')
+    parser.add_option('--project',
+                    dest='project',
+                    type='string',
+                    help='Mini-project package name to be tested by the autograder.',
+                    default="search")
+    mini_project_name = parser.parse_args(argv)[0].project
+
     parser.add_option('--student-code',
                       dest = 'studentCode',
-                      default = projectParams.STUDENT_CODE_DEFAULT,
+                      default = projectParams.STUDENT_CODE_DEFAULT[mini_project_name],
                       help = 'comma separated list of student code files')
     parser.add_option('--code-directory',
                     dest = 'codeRoot',
@@ -50,7 +57,7 @@ def readCommand(argv):
                     help = 'Root directory containing the student and testClass code')
     parser.add_option('--test-case-code',
                       dest = 'testCaseCode',
-                      default = projectParams.PROJECT_TEST_CLASSES,
+                      default = projectParams.PROJECT_TEST_CLASSES[mini_project_name],
                       help = 'class containing testClass classes for this project')
     parser.add_option('--generate-solutions',
                       dest = 'generateSolutions',
@@ -196,9 +203,7 @@ def printTest(testDict, solutionDict):
         print("   |", line)
 
 
-def runTest(testName, moduleDict, printTestCase=False, display=None):
-    import testParser
-    import testClasses
+def runTest(testName, moduleDict, mini_project_name, printTestCase=False, display=None):
     for module in moduleDict:
         setattr(sys.modules[__name__], module, moduleDict[module])
 
@@ -216,7 +221,7 @@ def runTest(testName, moduleDict, printTestCase=False, display=None):
         printTest(testDict, solutionDict)
 
     # This is a fragile hack to create a stub grades object
-    grades = grading.Grades(projectParams.PROJECT_NAME, [(None,0)])
+    grades = grading.Grades(projectParams.PROJECT_NAME[mini_project_name], [(None,0)])
     testCase.execute(grades, moduleDict, solutionDict)
 
 
@@ -245,11 +250,11 @@ def getTestSubdirs(testParser, testRoot, questionToGrade):
 
 
 # evaluate student code
-def evaluate(generateSolutions, testRoot, moduleDict, exceptionMap=ERROR_HINT_MAP, edxOutput=False, muteOutput=False,
+def evaluate(generateSolutions, testRoot, moduleDict, mini_project_name, exceptionMap=ERROR_HINT_MAP, edxOutput=False, muteOutput=False,
             printTestCase=False, questionToGrade=None, display=None):
     # imports of testbench code.  note that the testClasses import must follow
     # the import of student code due to dependencies
-    from . import testParser, testClasses
+
     for module in moduleDict:
         setattr(sys.modules[__name__], module, moduleDict[module])
 
@@ -300,15 +305,14 @@ def evaluate(generateSolutions, testRoot, moduleDict, exceptionMap=ERROR_HINT_MA
         setattr(sys.modules[__name__], q, makefun(question))
         questions.append((q, question.getMaxPoints()))
 
-    grades = grading.Grades(projectParams.PROJECT_NAME, questions, edxOutput=edxOutput, muteOutput=muteOutput)
+    grades = grading.Grades(projectParams.PROJECT_NAME[mini_project_name], questions, edxOutput=edxOutput, muteOutput=muteOutput)
     if questionToGrade == None:
         for q in questionDicts:
             for prereq in questionDicts[q].get('depends', '').split():
                 grades.addPrereq(q, prereq)
 
-    grades.grade(sys.modules[__name__], bonusPic = projectParams.BONUS_PIC)
+    grades.grade(sys.modules[__name__], bonusPic = projectParams.BONUS_PIC[mini_project_name])
     return grades.points
-
 
 
 def getDisplay(graphicsByDefault, options=None):
@@ -317,7 +321,7 @@ def getDisplay(graphicsByDefault, options=None):
         graphics = False
     if graphics:
         try:
-            import graphicsDisplay
+            from . import graphicsDisplay
             return graphicsDisplay.PacmanGraphics(1, frameTime=.05)
         except ImportError:
             pass
@@ -325,10 +329,8 @@ def getDisplay(graphicsByDefault, options=None):
     return textDisplay.NullGraphics()
 
 
-
-
-if __name__ == '__main__':
-    options = readCommand(sys.argv)
+def main(argv):
+    options = readCommand(argv)
     if options.generateSolutions:
         confirmGenerate()
     codePaths = options.studentCode.split(',')
@@ -342,21 +344,20 @@ if __name__ == '__main__':
     moduleDict = {}
     for cp in codePaths:
         moduleName = re.match('.*?([^/]*)\.py', cp).group(1)
-        moduleDict[moduleName] = loadModuleFile(moduleName, os.path.join(options.codeRoot, cp))
+        moduleDict[moduleName] = loadModuleFile(options.project + '.' + moduleName, os.path.join(options.codeRoot, cp))
     moduleName = re.match('.*?([^/]*)\.py', options.testCaseCode).group(1)
+    moduleName = options.project + '.' + moduleName
     moduleDict['projectTestClasses'] = loadModuleFile(moduleName, os.path.join(options.codeRoot, options.testCaseCode))
 
 
     if options.runTest != None:
-        runTest(options.runTest, moduleDict, printTestCase=options.printTestCase, display=getDisplay(True, options))
+        runTest(options.runTest, moduleDict, options.project, printTestCase=options.printTestCase, display=getDisplay(True, options))
     else:
-        evaluate(options.generateSolutions, join(dirname(__file__), options.testRoot), moduleDict,
+        evaluate(options.generateSolutions, join(dirname(__file__), options.project, options.testRoot), moduleDict, options.project,
             edxOutput=options.edxOutput, muteOutput=options.muteOutput, printTestCase=options.printTestCase,
             questionToGrade=options.gradeQuestion, display=getDisplay(options.gradeQuestion!=None, options))
 
 
-
-
-
-
+if __name__ == '__main__':
+    main(sys.argv)
 

@@ -61,4 +61,4 @@ target/
 backups/
 2to3_info/
 *.bak
-python_tests.py
+tfg_python_tests.py

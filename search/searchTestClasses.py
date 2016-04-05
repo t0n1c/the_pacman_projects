@@ -16,9 +16,9 @@ import re
 import textwrap
 
 # import project specific code
-from . import testClasses, layout, pacman
+from .. import layout, testClasses, pacman
 from .search import SearchProblem
-from .game import Directions, Actions
+from ..game import Directions, Actions
 
 # helper function for printing solutions in solution files
 def wrap_solution(solution):

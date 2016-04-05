@@ -43,9 +43,9 @@ import sys, types, time, random, os
 import importlib
 from os.path import dirname, join
 
-from .game import GameStateData, Game, Directions, Actions
 from .util import nearestPoint, manhattanDistance
-from . import util, layout, textDisplay, graphicsDisplay
+from .game import GameStateData, Game, Directions, Actions
+from . import layout, textDisplay, graphicsDisplay, util
 
 ###################################################
 # YOUR INTERFACE TO THE PACMAN WORLD: A GameState #
@@ -522,10 +522,12 @@ def readCommand( argv ):
                       help='Turns on exception handling and timeouts during games', default=False)
     parser.add_option('--timeout', dest='timeout', type='int',
                       help=default('Maximum length of time an agent can spend computing in a single game'), default=30)
+    parser.add_option('--project', dest='project', type='string',
+                      help=default('Mini-project package name to search the smart agents in.'), default="search")
 
-    options, otherjunk = parser.parse_args(argv)
-    if len(otherjunk) != 0:
-        raise Exception('Command line input not understood: ' + str(otherjunk))
+    options, _ = parser.parse_args(argv)
+    # if len(otherjunk) != 0:
+    #     raise Exception('Command line input not understood: ' + str(otherjunk))
     args = dict()
 
     # Fix the random seed
@@ -537,7 +539,7 @@ def readCommand( argv ):
 
     # Choose a Pacman agent
     noKeyboard = options.gameToReplay == None and (options.textGraphics or options.quietGraphics)
-    pacmanType = loadAgent(options.pacman, noKeyboard)
+    pacmanType = loadAgent(options.pacman, noKeyboard, options.project)
     agentOpts = parseAgentArgs(options.agentArgs)
     if options.numTraining > 0:
         args['numTraining'] = options.numTraining
@@ -551,7 +553,7 @@ def readCommand( argv ):
         options.numIgnore = int(agentOpts['numTrain'])
 
     # Choose a ghost agent
-    ghostType = loadAgent(options.ghost, noKeyboard)
+    ghostType = loadAgent(options.ghost, noKeyboard, options.project)
     args['ghosts'] = [ghostType( i+1 ) for i in range( options.numGhosts )]
 
     # Choose a display format
@@ -580,22 +582,26 @@ def readCommand( argv ):
 
     return args
 
-def loadAgent(pacman, nographics):
+def loadAgent(pacman, nographics, project_name):
     # Looks through all pythonPath Directories for the right module,
     pythonPathStr = os.path.expandvars("$PYTHONPATH")
     if pythonPathStr.find(';') == -1:
         pythonPathDirs = pythonPathStr.split(':')
     else:
         pythonPathDirs = pythonPathStr.split(';')
-    pythonPathDirs.append(dirname(__file__))
+    pythonPathDirs.extend([dirname(__file__), join(dirname(__file__), project_name)])
     for moduleDir in pythonPathDirs:
         if not os.path.isdir(moduleDir): continue
         moduleNames = [f.replace('.py','') for f in os.listdir(moduleDir) if f.endswith('gents.py')]
+
         for modulename in moduleNames:
             try:
                 module = importlib.import_module('.' + modulename, package=__package__)
             except TypeError:
                 continue
+            except ImportError:
+                module = importlib.import_module('.' + project_name + '.' + modulename, package=__package__)
+
             if pacman in dir(module):
                 if nographics and modulename == 'keyboardAgents.py':
                     raise Exception('Using the keyboard requires graphics (not text display)')
@@ -631,7 +637,6 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
         beQuiet = i < numTraining
         if beQuiet:
                 # Suppress output and graphics
-            import textDisplay
             gameDisplay = textDisplay.NullGraphics()
             rules.quiet = True
         else:
@@ -659,8 +664,7 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
         print('Record:       ', ', '.join([ ['Loss', 'Win'][int(w)] for w in wins]))
 
     return games
-
-if __name__ == '__main__':
+def main(argv):
     """
     The main function called when pacman.py is run
     from the command line:
@@ -671,9 +675,11 @@ if __name__ == '__main__':
 
     > python pacman.py --help
     """
-    args = readCommand( sys.argv[1:] ) # Get game components based on input
+    args = readCommand(argv) # Get game components based on input
     runGames( **args )
 
     # import cProfile
     # cProfile.run("runGames( **args )")
-    pass
+
+if __name__ == '__main__':
+    main(sys.argv)

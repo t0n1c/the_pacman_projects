@@ -20,9 +20,85 @@ import queue
 from collections import namedtuple
 
 
+"""
+ Data structures useful for implementing SearchAgents
+"""
 
 Point = namedtuple('Point', ['x', 'y'])
 CornerState = namedtuple('CornerState', ['position','reached_corners'])
+
+
+class ComparableMixin(object):
+    """A mixin class taken from
+    http://stackoverflow.com/questions/1061283/lt-instead-of-cmp"""
+
+    def __eq__(self, other):
+        return not self < other and not other < self
+
+    def __ne__(self, other):
+        return self < other or other < self
+
+    def __gt__(self, other):
+        return other < self
+
+    def __ge__(self, other):
+        return not self < other
+
+    def __le__(self, other):
+        return not other < self
+
+
+class QueueMixin(object):
+
+    def __init__(self):
+        self.queue = list()
+
+    def __contains__(self, item):
+        return item in self.queue
+
+    def __len__(self):
+        return len(self.queue)
+
+    def __iter__(self):
+        return iter(self.queue)
+
+
+class Stack(queue.LifoQueue, QueueMixin): pass
+
+
+class Queue(queue.Queue, QueueMixin): pass
+
+
+class PriorityQueue(queue.PriorityQueue, QueueMixin): pass
+
+
+def get_manhattan_distance(point1, point2):
+    return abs(point1.x - point2.x) + abs(point1.y - point2.y)
+
+
+def argmin(sequence):
+    return _argopt(sequence, min)
+
+
+def argmax(sequence):
+    return _argopt(sequence, max)
+
+
+def _argopt(sequence, opt_fn):
+    return sequence.index(opt_fn(sequence))
+
+
+def all_argmin(sequence):
+    return _all_argopt(sequence, min)
+
+
+def all_argmax(sequence):
+    return _all_argopt(sequence, max)
+
+
+def _all_argopt(sequence, opt_fn):
+    return [index for index,item in enumerate(sequence) if item==opt_fn(sequence)]
+
 
 class FixedRandom:
     def __init__(self):
@@ -119,53 +195,7 @@ class FixedRandom:
         self.random = random.Random()
         self.random.setstate(fixedState)
 
-"""
- Data structures useful for implementing SearchAgents
-"""
 
-class ComparableMixin(object):
-    """A mixin class taken from
-    http://stackoverflow.com/questions/1061283/lt-instead-of-cmp"""
-
-    def __eq__(self, other):
-        return not self < other and not other < self
-
-    def __ne__(self, other):
-        return self < other or other < self
-
-    def __gt__(self, other):
-        return other < self
-
-    def __ge__(self, other):
-        return not self < other
-
-    def __le__(self, other):
-        return not other < self
-
-
-class QueueMixin(object):
-
-    def __init__(self):
-        self.queue = list()
-
-    def __contains__(self, item):
-        return item in self.queue
-
-    def __len__(self):
-        return len(self.queue)
-
-    def __iter__(self):
-        return iter(self.queue)
-
-
-class Stack(queue.LifoQueue, QueueMixin):
-    pass
-
-class Queue(queue.Queue, QueueMixin):
-    pass
-
-class PriorityQueue(queue.PriorityQueue, QueueMixin):
-    pass
 
 # class Stack:
 #     "A container with a last-in-first-out (LIFO) queuing policy."

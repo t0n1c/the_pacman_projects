@@ -20,6 +20,7 @@ import sys
 import traceback
 import pdb
 from collections import defaultdict
+
 from . import util
 
 class Grades:
@@ -278,4 +279,8 @@ class Counter(dict):
     Returns the sum of counts for all keys.
     """
     return sum(self.values())
+
+if __name__ == '__main__':
+  pass
+
 
