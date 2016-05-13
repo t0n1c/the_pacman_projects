@@ -20,19 +20,20 @@
 #     state.getScore()
 #           used by multiAgents.scoreEvaluationFunction, which is the default
 #
-import testClasses
-import json
 
+import json
+import time
+import random, math, traceback, sys, os
 from collections import defaultdict
 from pprint import PrettyPrinter
 pp = PrettyPrinter()
 
-from game import Agent
-from pacman import GameState
-from ghostAgents import RandomGhost, DirectionalGhost
-import random, math, traceback, sys, os
-import layout, pacman
-import autograder
+from ..game import Agent
+from ..pacman import GameState
+from ..ghostAgents import RandomGhost, DirectionalGhost
+from .. import testClasses
+from ..util import TimeoutFunction
+from .. import layout, pacman, autograder
 # import grading
 
 VERBOSE = False
@@ -135,7 +136,7 @@ def run(lay, layName, pac, ghosts, disp, nGames=1, name='games'):
     """
     starttime = time.time()
     print('*** Running %s on' % name, layName, '%d time(s).' % nGames)
-    games = pacman.runGames(lay, pac, ghosts, disp, nGames, False, catchExceptions=True, timeout=120)
+    games = pacman.runGames(lay, pac, ghosts, disp, nGames, False, catchExceptions=False, timeout=120)
     print('*** Finished running %s on' % name, layName, 'after %d seconds.' % (time.time() - starttime))
     stats = {'time': time.time() - starttime, 'wins': [g.state.isWin() for g in games].count(True), 'games': games, 'scores': [g.state.getScore() for g in games],
              'timeouts': [g.agentTimeout for g in games].count(True), 'crashes': [g.agentCrashed for g in games].count(True)}
@@ -423,8 +424,7 @@ class GraphGameTreeTest(testClasses.TestCase):
         return True
 
 
-import time
-from util import TimeoutFunction
+
 
 
 class EvalAgentTest(testClasses.TestCase):

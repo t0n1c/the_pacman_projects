@@ -17,7 +17,7 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
-from ..util import raiseNotDefined, ComparableMixin, Stack, Queue, PriorityQueue
+from ..util import raiseNotDefined, ComparableMixin, Stack, Queue, PriorityQueue, SearchError
 from ..game import Directions
 
 
@@ -148,7 +148,7 @@ def generic_search(problem, data_structure, heuristic=nullHeuristic, check_cost=
                 open_nodes_cost[next_node] = next_node.cost
                 frontier.put(next_node)
     else:
-        raise SearchFailure('No more states to search in. No solution found.')
+        raise SearchError('No more states to search in. No solution found.')
 
     return current_node.construct_actions_path()
 

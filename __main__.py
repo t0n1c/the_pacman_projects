@@ -6,7 +6,7 @@ from .pacman import main as pacman_main
 __doc__ = "" # main function MANAGER
 
 def main(argv):
-    pass
+    autograder_main(argv)
 
 
 if __name__ == '__main__':

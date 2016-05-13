@@ -36,9 +36,12 @@ Good luck and happy searching!
 
 import time
 from heapq import nsmallest
-from collections import namedtuple
-from game import Directions, Agent, Actions
-import search
+
+
+from ..game import Directions, Agent, Actions
+from ..util import (Point, CornerState, get_manhattan_distance, argmin,
+                    UnitVectorError, UndefinedSideError)
+from . import search
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -264,7 +267,7 @@ def euclideanHeuristic(position, problem, info={}):
 #####################################################
 # This portion is incomplete.  Time to write code!  #
 #####################################################
-CornerState = namedtuple('CornerState',('position','reached_corners'))
+
 
 
 class CornersProblem(search.SearchProblem):

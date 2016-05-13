@@ -45,7 +45,10 @@ def readCommand(argv):
                     type='string',
                     help='Mini-project package name to be tested by the autograder.',
                     default="search")
-    mini_project_name = parser.parse_args(argv)[0].project
+    try:
+        mini_project_name = argv[argv.index('--project') + 1]
+    except ValueError:
+        mini_project_name = "search"
 
     parser.add_option('--student-code',
                       dest = 'studentCode',

@@ -17,6 +17,7 @@ import inspect
 import heapq, random
 import io
 import queue
+import math
 from collections import namedtuple
 
 
@@ -24,8 +25,25 @@ from collections import namedtuple
  Data structures useful for implementing SearchAgents
 """
 
-Point = namedtuple('Point', ['x', 'y'])
 CornerState = namedtuple('CornerState', ['position','reached_corners'])
+BasePoint = namedtuple('BasePoint', ['x', 'y'])
+
+class Point(BasePoint):
+    """A namedtuple Point class with add/sub capabilities."""
+
+    def __new__(cls, x, y, is_int=False):
+        if is_int:
+            x,y = int(x),int(y)
+        return super().__new__(cls, x, y)
+
+    def __add__(self, other):
+        return Point(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        return Point(self.x - other.x, self.y - other.y)
+
+    def __repr__(self):
+        return 'Point(x=%s, y=%s)' % (self.x, self.y)
 
 
 class ComparableMixin(object):
@@ -76,6 +94,10 @@ def get_manhattan_distance(point1, point2):
     return abs(point1.x - point2.x) + abs(point1.y - point2.y)
 
 
+def get_euclidean_distance(point1, point2):
+    return math.sqrt(sum((c1-c2)**2 for c1,c2 in zip(point1, point2)))
+
+
 def argmin(sequence):
     return _argopt(sequence, min)
 
@@ -99,6 +121,26 @@ def all_argmax(sequence):
 def _all_argopt(sequence, opt_fn):
     return [index for index,item in enumerate(sequence) if item==opt_fn(sequence)]
 
+
+def slice_matrix_vector(matrix, x, y, slice_by, step):
+    """ This function slices a column of the given matrix, from the x,y position forward or
+    backward according yo the step value(idem for rows).
+    """
+    if slice_by == 'column':
+        return matrix[x][y::step]
+    elif slice_by == 'row':
+        return [row[y] for row in matrix[x::step]]
+
+# Custom exceptions
+
+class SearchError(Exception):
+    pass
+
+class UnitVectorError(Exception):
+    pass
+
+class UndefinedSideError(Exception):
+    pass
 
 class FixedRandom:
     def __init__(self):

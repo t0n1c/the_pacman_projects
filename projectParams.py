@@ -12,7 +12,15 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-STUDENT_CODE_DEFAULT = {'search' : 'searchAgents.py,search.py'}
-PROJECT_TEST_CLASSES = {'search' : 'searchTestClasses.py'}
-PROJECT_NAME = {'search' : 'Project 1: Search'}
-BONUS_PIC = {'search' : True}
+STUDENT_CODE_DEFAULT = {'search' : 'searchAgents.py,search.py',
+                        'multiagent': 'multiAgents.py'}
+
+PROJECT_TEST_CLASSES = {'search' : 'searchTestClasses.py',
+                        'multiagent':'multiagentTestClasses.py'}
+
+PROJECT_NAME = {'search' : 'Project 1: Search',
+                'multiagent':'Project 2: Multiagent search'}
+
+BONUS_PIC = {'search' : True,
+            'multiagent':True}
+

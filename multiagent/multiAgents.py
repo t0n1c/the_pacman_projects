@@ -12,15 +12,16 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-from util import manhattan_heuristic
-from game import Directions, Agent
+
 import random
-import util
-from util import get_euclidean_distance as get_distance, slice_matrix_vector
-from search import AnyFoodSearchProblem, uniformCostSearch, PositionSearchProblem, aStarSearch, SearchFailure
 import os
 import sys
-from itertools import chain
+
+from ..game import Directions, Agent
+from .. import util
+from ..util import get_euclidean_distance as get_distance, slice_matrix_vector, SearchError
+from ..search.search import uniformCostSearch, aStarSearch
+from ..search.searchAgents import AnyFoodSearchProblem, PositionSearchProblem, manhattanHeuristic
 
 
 # THR stands for THRESHOLD
@@ -152,13 +153,13 @@ def get_capsule_actions(pacman_pos, capsules, **kwargs_psp):
     """
     capsule_pos = get_closest_capsule(pacman_pos, capsules)
     problem = PositionSearchProblem(goal=capsule_pos, **kwargs_psp)
-    return aStarSearch(problem, manhattan_heuristic)
+    return aStarSearch(problem, manhattanHeuristic)
 
 
 def get_scared_ghost_actions(scared_ghosts, **kwargs_psp):
     """Closest scared ghost set of actions"""
     problems = [PositionSearchProblem(goal=xy, **kwargs_psp) for xy in scared_ghosts]
-    ghostbuster_ways = [aStarSearch(problem, manhattan_heuristic) for problem in problems]
+    ghostbuster_ways = [aStarSearch(problem, manhattanHeuristic) for problem in problems]
     return min(ghostbuster_ways, key=len)
 
 
@@ -166,7 +167,7 @@ def get_first_food_actions(game_state):
     problem = AnyFoodSearchProblem(game_state)
     try:
         return uniformCostSearch(problem)
-    except SearchFailure:
+    except SearchError:
         return list()
 
 
