@@ -145,7 +145,7 @@ def _scale_features(features, label, predicted_label, weights, c_bound):
     return Counter([(pos, pix*tau) for pos,pix in features.items()])
 
 
-def _get_tau(features, wy, wy_prime, uppergit_bound):
+def _get_tau(features, wy, wy_prime, upper_bound):
     """Return step size (tau) for the MIRA algorithm given an upper bound.
 
     Args:
