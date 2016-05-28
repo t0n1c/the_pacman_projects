@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -16,7 +16,7 @@ import sys
 import inspect
 import heapq, random
 import io
-
+from itertools import product
 
 class FixedRandom:
     def __init__(self):
@@ -116,6 +116,74 @@ class FixedRandom:
 """
  Data structures useful for implementing SearchAgents
 """
+
+class OutOfBoundsError(Exception):
+    pass
+
+
+def flood_fill(map_, x0, y0, target, *, replacement_value=None, fill=False, eight_way=False):
+    """Execute a Flood Fill based algorithm where the replacement of the target is optional.
+    Return a region (connected area; points that have the "target" argument as value in map_).
+
+    Args:
+        map_: The world. The discrete 2D Euclidean Space. A 2D array-like.
+        x0: Initial x.
+        y0: Initial y:
+        target: The value to look for or replace.
+        replacement_value: The substitute value.
+        fill: If true the original algorithm is executed and map_ is changed (side effect).
+        eigth_way: If true 8-way version is executed otherwise 4-way version is executed.
+
+    Exceptions:
+        Raise an OutOfBoundsError.
+    """
+    lookup = set()
+    region = []
+    if not _check_bounds(map_, x0, y0):
+        raise OutOfBoundsError
+    if map_[x0][y0] != target:
+        return region
+
+    region.append((x0,y0))
+    lookup.add((x0,y0))
+    for x,y in region:
+        for dx,dy in _get_offset(eight_way):
+            nx,ny = (x+dx, y+dy)
+            if _is_filling_point(map_, nx, ny, lookup, target):
+                region.append((nx,ny))
+                lookup.add((nx,ny))
+        if fill:
+            map_[x][y] = replacement_value
+    return set(region)
+
+
+def _get_offset(eight_way):
+    """Yield a sequence of relative vectors (4-way or 8-way, in a discrete 2D Euclidean Space) in
+    such a way that when its coordinates are added to a given point, this is shifted to the
+    corresponding adjacent point(horizontally or vertically. And diagonally if eight_way is equal
+    to true).
+
+    Args:
+        eigth_way: if true the 8-way version is applied.
+    """
+    offset = [-1, 0, 1]
+    for x,y in product(offset, offset):
+        if eight_way:
+            if x!=0 or y!=0:
+                yield x,y
+        else:
+            if abs(x) != abs(y):
+                yield x,y
+
+
+def _is_filling_point(map_, x, y, lookup, target):
+    return (x,y) not in lookup and _check_bounds(map_, x, y) and  map_[x][y] == target
+
+
+def _check_bounds(map_, x, y):
+    width, height =  len(map_), len(map_[0])
+    return 0 <= x < width and 0 <= y < height
+
 
 class Stack:
     "A container with a last-in-first-out (LIFO) queuing policy."

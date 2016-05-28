@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -73,13 +73,27 @@ def enhancedFeatureExtractorDigit(datum):
 
     ## DESCRIBE YOUR ENHANCED FEATURES HERE...
 
+    This enhancement is based on the proposed improvement on
+    http://inst.eecs.berkeley.edu/~cs188/pacman/classification.html#Q4.
+    Basically consists in detecting how many white connected regions are by computing
+    the flood fill algorithm. There are 3 possibilities 1,2,3 so you would have a feature
+    with 3 values. We need a binary feature, so we use the "mathematical" trick proposed on the
+    formulation which maps that 3-values feature into 3 binary features where only one can be "on"
+    at once.
     ##
     """
     features =  basicFeatureExtractorDigit(datum)
+    map_ = datum.pixels
+    white_regions = []
+    for x in range(DIGIT_DATUM_WIDTH):
+        for y in range(DIGIT_DATUM_HEIGHT):
+            if not any([(x,y) in region for region in white_regions]):
+                region = util.flood_fill(map_, x, y, 0, eight_way=True)
+                if len(region) != 0:
+                    white_regions.append(region)
 
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
+    for k in [1,2,3]:
+        features[k] = int(k == len(white_regions))
     return features
 
 
@@ -166,16 +180,16 @@ def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage)
 
     # Put any code here...
     # Example of use:
-    # for i in range(len(guesses)):
-    #     prediction = guesses[i]
-    #     truth = testLabels[i]
-    #     if (prediction != truth):
-    #         print "==================================="
-    #         print "Mistake on example %d" % i
-    #         print "Predicted %d; truth is %d" % (prediction, truth)
-    #         print "Image: "
-    #         print rawTestData[i]
-    #         break
+    for i in range(len(guesses)):
+        prediction = guesses[i]
+        truth = testLabels[i]
+        if (prediction != truth):
+            print ("===================================")
+            print ("Mistake on example %d" % i)
+            print ("Predicted %d; truth is %d" % (prediction, truth))
+            print ("Image: ")
+            print (rawTestData[i])
+            break
 
 
 ## =====================
@@ -364,7 +378,7 @@ def runClassifier(args, options):
     featureFunction = args['featureFunction']
     classifier = args['classifier']
     printImage = args['printImage']
-    
+
     # Load data
     numTraining = options.training
     numTest = options.test
