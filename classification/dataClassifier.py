@@ -180,16 +180,16 @@ def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage)
 
     # Put any code here...
     # Example of use:
-    for i in range(len(guesses)):
-        prediction = guesses[i]
-        truth = testLabels[i]
-        if (prediction != truth):
-            print ("===================================")
-            print ("Mistake on example %d" % i)
-            print ("Predicted %d; truth is %d" % (prediction, truth))
-            print ("Image: ")
-            print (rawTestData[i])
-            break
+    # for i in range(len(guesses)):
+    #     prediction = guesses[i]
+    #     truth = testLabels[i]
+    #     if (prediction != truth):
+    #         print ("===================================")
+    #         print ("Mistake on example %d" % i)
+    #         print ("Predicted %d; truth is %d" % (prediction, truth))
+    #         print ("Image: ")
+    #         print (rawTestData[i])
+    #         break
 
 
 ## =====================
