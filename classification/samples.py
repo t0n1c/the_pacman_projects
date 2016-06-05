@@ -12,7 +12,9 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-import util
+from .. import util
+import sys
+from .. import pacman,game,layout
 
 ## Constants
 DATUM_WIDTH = 0 # in pixels
@@ -122,12 +124,14 @@ def loadDataFile(filename, n,width,height):
 
 import zipfile
 import os
+from os.path import dirname,join
+
 def readlines(filename):
     "Opens a file or reads it from the zip archive data.zip"
     if(os.path.exists(filename)):
         return [l[:-1] for l in open(filename).readlines()]
     else:
-        z = zipfile.ZipFile('data.zip')
+        z = zipfile.ZipFile(join(dirname(__file__),'data.zip'))
         return z.read(filename).decode('UTF-8').split('\n')
 
 def loadLabelsFile(filename, n):
@@ -143,16 +147,18 @@ def loadLabelsFile(filename, n):
     return labels
 
 def loadPacmanStatesFile(filename, n):
-    f = open(filename, 'rb')
+    sys.modules['pacman'] = pacman
+    sys.modules['game'] = game
+    sys.modules['layout'] = layout
+
+    f = open(join(dirname(__file__),filename), 'rb')
     result = pickle.load(f)
     f.close()
     return result
 
 import pickle
-import pacmanAgents
-import ghostAgents
-import textDisplay
-from pacman import ClassicGameRules, GameState
+from .. import pacmanAgents, ghostAgents, textDisplay
+from ..pacman import ClassicGameRules, GameState
 def loadPacmanData(filename, n):
     """
     Return game states from specified recorded games as data, and actions taken as labels
@@ -211,3 +217,6 @@ def _test():
 
 if __name__ == "__main__":
     _test()
+
+
+

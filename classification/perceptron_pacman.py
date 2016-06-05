@@ -13,10 +13,9 @@
 
 
 # Perceptron implementation for apprenticeship learning
-import util
-from perceptron import PerceptronClassifier
-from pacman import GameState
-from util import Counter
+from .. import util
+from ..pacman import GameState
+from .perceptron import PerceptronClassifier
 
 PRINT = True
 
@@ -51,7 +50,7 @@ class PerceptronClassifierPacman(PerceptronClassifier):
             print("Starting iteration ", iteration, "...")
             for datum,label in zip(trainingData, trainingLabels):
                 features, legal_moves = datum
-                guess = Counter([(l,self.weights*features[l]) for l in legal_moves]).argMax()
+                guess = util.Counter([(l,self.weights*features[l]) for l in legal_moves]).argMax()
                 if label != guess:
                     self.weights += features[label]
                     self.weights -= features[guess]

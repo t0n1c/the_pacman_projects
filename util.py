@@ -19,7 +19,7 @@ import io
 import queue
 import math
 from collections import namedtuple
-
+from itertools import product
 
 """
  Data structures useful for implementing SearchAgents
@@ -81,13 +81,35 @@ class QueueMixin(object):
         return iter(self.queue)
 
 
-class Stack(queue.LifoQueue, QueueMixin): pass
+class LookupList(object):
+    def __init__(self, sequence=None):
+        if sequence is None:
+            sequence = []
+        self.list_ = list(sequence)
+        self.lookup = set(sequence)
+
+    def __contains__(self, element):
+        return element in self.lookup
+
+    def append(self, element):
+        if element not in self.lookup:
+            self.list_.append(element)
+            self.lookup.add(element)
+
+    def __getitem__(self, index):
+        return self.list_[index]
 
 
-class Queue(queue.Queue, QueueMixin): pass
+class Stack(queue.LifoQueue, QueueMixin):
+    pass
 
 
-class PriorityQueue(queue.PriorityQueue, QueueMixin): pass
+class Queue(queue.Queue, QueueMixin):
+    pass
+
+
+class PriorityQueue(queue.PriorityQueue, QueueMixin):
+    pass
 
 
 def get_manhattan_distance(point1, point2):
@@ -119,17 +141,85 @@ def all_argmax(sequence):
 
 
 def _all_argopt(sequence, opt_fn):
-    return [index for index,item in enumerate(sequence) if item==opt_fn(sequence)]
+    return [index for index,item in enumerate(sequence) if item == opt_fn(sequence)]
 
 
 def slice_matrix_vector(matrix, x, y, slice_by, step):
     """ This function slices a column of the given matrix, from the x,y position forward or
-    backward according yo the step value(idem for rows).
+    backward according to the step value(idem for rows).
     """
     if slice_by == 'column':
         return matrix[x][y::step]
     elif slice_by == 'row':
         return [row[y] for row in matrix[x::step]]
+
+
+def flood_fill(map_, x0, y0, target, *, replacement_value=None, fill=False, eight_way=False):
+    """Execute a Flood Fill based algorithm where the replacement of the target is optional.
+    Return a region (connected area; points that have the "target" argument as value in map_).
+
+    Args:
+        map_: The world. The discrete 2D Euclidean Space. A 2D array-like.
+        x0: Initial x.
+        y0: Initial y:
+        target: The value to look for or replace.
+        replacement_value: The substitute value.
+        fill: If true the original algorithm is executed and map_ is changed (side effect).
+        eigth_way: If true 8-way version is executed otherwise 4-way version is executed.
+
+    Exceptions:
+        Raise an OutOfBoundsError.
+    """
+    region = LookupList()
+    if not _check_bounds(map_, x0, y0):
+        raise OutOfBoundsError
+    if map_[x0][y0] != target:
+        return []
+
+    region.append((x0,y0))
+    for x,y in region:
+        for nx,ny in _get_neighbors(x, y, map_, region, target, eight_way):
+            region.append((nx,ny))
+        if fill:
+            map_[x][y] = replacement_value
+    return list(region)
+
+
+def _get_neighbors(x, y, map_, lookup, target, eight_way):
+    for dx,dy in _get_offset(eight_way):
+        nx,ny = (x+dx, y+dy)
+        if _is_filling_point(map_, nx, ny, lookup, target):
+            yield (nx,ny)
+
+
+
+def _get_offset(eight_way):
+    """Yield a sequence of relative vectors (4-way or 8-way, in a discrete 2D Euclidean Space) in
+    such a way that when its coordinates are added to a given point, this is shifted to the
+    corresponding adjacent point(horizontally or vertically. And diagonally if eight_way is equal
+    to true).
+
+    Args:
+        eigth_way: if true the 8-way version is applied.
+    """
+    offset = [-1, 0, 1]
+    for x,y in product(offset, offset):
+        if eight_way:
+            if x!=0 or y!=0:
+                yield x,y
+        else:
+            if abs(x) != abs(y):
+                yield x,y
+
+
+def _is_filling_point(map_, x, y, lookup, target):
+    return (x,y) not in lookup and _check_bounds(map_, x, y) and  map_[x][y] == target
+
+
+def _check_bounds(map_, x, y):
+    width, height =  len(map_), len(map_[0])
+    return 0 <= x < width and 0 <= y < height
+
 
 # Custom exceptions
 
@@ -141,6 +231,10 @@ class UnitVectorError(Exception):
 
 class UndefinedSideError(Exception):
     pass
+
+class OutOfBoundsError(Exception):
+    pass
+
 
 class FixedRandom:
     def __init__(self):

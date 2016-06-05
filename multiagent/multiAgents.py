@@ -244,7 +244,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         root_successors = zip(game_state.getLegalActions(0), get_successors(game_state, 0))
         scores = [(action, self.min_value(succ,1,self.depth)) for action,succ in root_successors]
         highest_score = max(scores, key=lambda pair: pair[1])[1]
-        return random.choice([(a,score) for a,score in scores if score == highest_score])[0]
+        return random.choice([action for action,score in scores if score == highest_score])
 
 
 

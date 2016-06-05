@@ -13,22 +13,23 @@
 
 
 from hashlib import sha1
-import testClasses
-# import json
-
+import random, math, traceback, sys, os
 from collections import defaultdict
 from pprint import PrettyPrinter
 pp = PrettyPrinter()
 
+from .. import testClasses
+from ..pacman import GameState
+from . import dataClassifier, samples
+# import json
+
+
 # from game import Agent
-from pacman import GameState
 # from ghostAgents import RandomGhost, DirectionalGhost
-import random, math, traceback, sys, os
 # import layout, pacman
 # import autograder
 # import grading
 
-import dataClassifier, samples
 
 VERBOSE = False
 

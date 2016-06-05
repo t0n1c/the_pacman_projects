@@ -1,4 +1,4 @@
-# projectParams.py
+    # projectParams.py
 # ----------------
 # Licensing Information:  You are free to use or extend these projects for
 # educational purposes provided that (1) you do not distribute or publish
@@ -13,14 +13,24 @@
 
 
 STUDENT_CODE_DEFAULT = {'search' : 'searchAgents.py,search.py',
-                        'multiagent': 'multiAgents.py'}
+                        'multiagent': 'multiAgents.py',
+                        'classification':'naiveBayes.py,perceptron.py,mira.py,dataClassifier.py,answers.py,perceptron_pacman.py'
+                        }
 
 PROJECT_TEST_CLASSES = {'search' : 'searchTestClasses.py',
-                        'multiagent':'multiagentTestClasses.py'}
+                        'multiagent':'multiagentTestClasses.py',
+                        'classification':'classificationTestClasses.py'
+                        }
 
 PROJECT_NAME = {'search' : 'Project 1: Search',
-                'multiagent':'Project 2: Multiagent search'}
+                'multiagent':'Project 2: Multiagent search',
+                'classification': 'Project 5: Classification'
+                }
 
 BONUS_PIC = {'search' : True,
-            'multiagent':True}
+            'multiagent':True,
+            'classification': True
+            }
+
+
 

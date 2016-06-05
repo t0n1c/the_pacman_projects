@@ -13,8 +13,7 @@
 
 
 # Mira implementation
-import util
-from util import Counter
+from .. import util
 
 PRINT = True
 
@@ -126,7 +125,7 @@ def _predict_label(weights, features):
     """Return the predicted label by computing the activation function for each weight and
     then taking the maximum.
     """
-    return Counter([(lab, w*features) for lab,w in weights.items()]).argMax()
+    return util.Counter([(lab, w*features) for lab,w in weights.items()]).argMax()
 
 
 def _scale_features(features, label, predicted_label, weights, c_bound):
@@ -142,7 +141,7 @@ def _scale_features(features, label, predicted_label, weights, c_bound):
     wy = weights[label]
     wy_prime = weights[predicted_label]
     tau = _get_tau(features, wy, wy_prime, c_bound)
-    return Counter([(pos, pix*tau) for pos,pix in features.items()])
+    return util.Counter([(pos, pix*tau) for pos,pix in features.items()])
 
 
 def _get_tau(features, wy, wy_prime, upper_bound):

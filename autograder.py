@@ -22,8 +22,7 @@ import re
 import sys
 import random
 
-from . import grading, testParser, testClasses
-from . import projectParams
+from . import grading, testParser, testClasses, projectParams
 
 # try:
 #     from pacman import GameState
@@ -49,7 +48,6 @@ def readCommand(argv):
         mini_project_name = argv[argv.index('--project') + 1]
     except ValueError:
         mini_project_name = "search"
-
     parser.add_option('--student-code',
                       dest = 'studentCode',
                       default = projectParams.STUDENT_CODE_DEFAULT[mini_project_name],

@@ -15,15 +15,11 @@
 # This file contains feature extraction methods and harness
 # code for data classification
 
-import mostFrequent
-import naiveBayes
-import perceptron
-import perceptron_pacman
-import mira
-import samples
 import sys
-import util
-from pacman import GameState
+from . import mostFrequent, naiveBayes, perceptron, perceptron_pacman, mira, samples
+from .. import util
+from ..pacman import GameState
+
 
 TEST_SET_SIZE = 100
 DIGIT_DATUM_WIDTH=28
@@ -90,7 +86,7 @@ def enhancedFeatureExtractorDigit(datum):
             if not any([(x,y) in region for region in white_regions]):
                 region = util.flood_fill(map_, x, y, 0, eight_way=True)
                 if len(region) != 0:
-                    white_regions.append(region)
+                    white_regions.append(set(region))
 
     for k in [1,2,3]:
         features[k] = int(k == len(white_regions))
@@ -136,9 +132,18 @@ def enhancedPacmanFeatures(state, action):
     For each state, this function is called with each legal action.
     It should return a counter with { <feature name> : <feature value>, ... }
     """
+
     features = util.Counter()
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    successor = state.generateSuccessor(0, action)
+    pacman_pos = successor.getPacmanPosition()
+
+    ghost_positions = successor.getGhostPositions()
+    ghost_distances = [util.manhattanDistance(pos, pacman_pos) for pos in ghost_positions]
+
+
+    features['min_ghost_dist'] = min(ghost_distances)
+
+
     return features
 
 

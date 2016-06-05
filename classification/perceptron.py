@@ -13,7 +13,7 @@
 
 
 # Perceptron implementation
-from util import Counter
+from ..util import Counter
 from heapq import nlargest
 PRINT = True
 
