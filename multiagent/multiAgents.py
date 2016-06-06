@@ -19,7 +19,8 @@ import sys
 
 from ..game import Directions, Agent
 from .. import util
-from ..util import get_euclidean_distance as get_distance, slice_matrix_vector, SearchError
+from ..util import get_euclidean_distance as get_distance, SearchError, all_argmax
+
 from ..search.search import uniformCostSearch, aStarSearch
 from ..search.searchAgents import AnyFoodSearchProblem, PositionSearchProblem, manhattanHeuristic
 
@@ -241,27 +242,22 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        root_successors = zip(game_state.getLegalActions(0), get_successors(game_state, 0))
-        scores = [(action, self.min_value(succ,1,self.depth)) for action,succ in root_successors]
-        highest_score = max(scores, key=lambda pair: pair[1])[1]
-        return random.choice([action for action,score in scores if score == highest_score])
-
-
+        scores = [self.min_value(s, 1, self.depth) for s in get_successors(game_state, 0)]
+        actions = game_state.getLegalActions(0)
+        return random.choice([actions[i] for i in all_argmax(scores)])
 
     def min_value(self, game_state, agent_index, depth):
         if depth == 0 or len(game_state.getLegalActions(agent_index)) == 0:
             return self.evaluationFunction(game_state)
         successors = get_successors(game_state, agent_index)
-        minmax_fn, next_agent_index, depth = self._set_up_minmax(game_state, agent_index, depth)
-        return min([minmax_fn(s, next_agent_index, depth) for s in successors] + [float('Inf')])
-
+        minmax_fn, *args = self._set_up_minmax(game_state, agent_index, depth)
+        return min([minmax_fn(s, *args) for s in successors] + [float('Inf')])
 
     def max_value(self, game_state, agent_index, depth):
         if depth == 0 or len(game_state.getLegalActions(agent_index)) == 0:
             return self.evaluationFunction(game_state)
         successors = get_successors(game_state, agent_index)
         return max([self.min_value(s, 1, depth) for s in successors] + [float('-Inf')])
-
 
     def _set_up_minmax(self, game_state, agent_index, depth):
         if agent_index == game_state.getNumAgents() - 1:
@@ -288,17 +284,17 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        root_successors = zip(game_state.getLegalActions(0), get_successors(game_state, 0))
+        successors = get_successors(game_state, 0)
         alpha, beta = float('-Inf'), float('Inf')
         current_max = float('-Inf')
         scores = list()
-        for action,succ in root_successors:
+        for succ in successors:
             min_v = self.min_value(succ, 1, self.depth, alpha, beta)
-            scores.append((action,min_v))
+            scores.append(min_v)
             current_max = max(current_max, min_v)
             alpha = max(alpha, current_max)
-        highest_score = max(scores, key=lambda pair: pair[1])[1]
-        return random.choice([(a,score) for a,score in scores if score == highest_score])[0]
+        actions = game_state.getLegalActions(0)
+        return random.choice([actions[i] for i in all_argmax(scores)])
 
 
     def min_value(self, game_state, agent_index, depth, alpha, beta):
@@ -318,9 +314,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     def max_value(self, game_state, agent_index, depth, alpha, beta):
         if depth == 0 or len(game_state.getLegalActions(agent_index)) == 0:
             return self.evaluationFunction(game_state)
-        successors = get_successors(game_state, agent_index)
         current_max = float('-Inf')
-        for succ in successors:
+        for succ in get_successors(game_state, agent_index):
             current_max = max(current_max, self.min_value(succ, 1, depth, alpha, beta))
             if current_max > beta:
                 return current_max
