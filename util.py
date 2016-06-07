@@ -161,11 +161,11 @@ def flood_fill(map_, x0, y0, target, *, replacement_value=None, fill=False, eigh
     Args:
         map_: The world. The discrete 2D Euclidean Space. A 2D array-like.
         x0: Initial x.
-        y0: Initial y:
+        y0: Initial y.
         target: The value to look for or replace.
         replacement_value: The substitute value.
         fill: If true the original algorithm is executed and map_ is changed (side effect).
-        eigth_way: If true 8-way version is executed otherwise 4-way version is executed.
+        eight_way: If true 8-way version is executed otherwise 4-way version is executed.
 
     Exceptions:
         Raise an OutOfBoundsError.
