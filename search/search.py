@@ -68,12 +68,12 @@ class SearchFailure(Exception):
     pass
 
 class SearchNode(ComparableMixin):
-    def __init__(self, state, action, node_cost, heuristic_cost, parent=None):
+    def __init__(self, state, action, path_cost, heuristic_cost, parent=None):
         self.state = state
         self.action = action
-        self.node_cost = node_cost
+        self.path_cost = path_cost
         self.heuristic_cost = heuristic_cost
-        self.cost = node_cost + heuristic_cost
+        self.cost = path_cost + heuristic_cost
         if parent is None:
             self.parent = self
         else:
@@ -111,7 +111,7 @@ def nullHeuristic(state, problem=None):
     return 0
 
 
-def check_search_node(next_node, open_nodes_cost, closed_nodes_cost,
+def is_valid_node(next_node, open_nodes_cost, closed_nodes_cost,
                       check_cost, check_only_closed):
     cost = next_node.cost
     if check_only_closed:
@@ -129,7 +129,7 @@ def generic_search(problem, data_structure, heuristic=nullHeuristic, check_cost=
     open_nodes_cost = dict()
     closed_nodes_cost = dict()
     start_state = problem.getStartState()
-    start_node = SearchNode(start_state,Directions.STOP,0,heuristic(start_state,problem))
+    start_node = SearchNode(start_state, Directions.STOP, 0, heuristic(start_state,problem))
     frontier.put(start_node)
     open_nodes_cost[start_node] = start_node.cost
 
@@ -137,20 +137,26 @@ def generic_search(problem, data_structure, heuristic=nullHeuristic, check_cost=
         current_node = frontier.get()
         closed_nodes_cost[current_node] = current_node.cost
         if problem.isGoalState(current_node.state):
-            break
-        successors = problem.getSuccessors(current_node.state)
-        for state,action,cost in successors:
-            total_cost = cost + current_node.node_cost
-            heuristic_cost = heuristic(state, problem)
-            next_node = SearchNode(state, action, total_cost, heuristic_cost, current_node)
-            args = next_node, open_nodes_cost, closed_nodes_cost, check_cost, check_only_closed
-            if check_search_node(*args):
-                open_nodes_cost[next_node] = next_node.cost
-                frontier.put(next_node)
-    else:
-        raise SearchError('No more states to search in. No solution found.')
+            return current_node.construct_actions_path()
+        add_successors(problem, current_node, heuristic,
+                       frontier, open_nodes_cost, closed_nodes_cost,
+                       check_cost, check_only_closed)
 
-    return current_node.construct_actions_path()
+    raise SearchError('No more states to search in. No solution found.')
+
+
+def add_successors(problem, parent, heuristic, frontier,
+                   open_nodes_cost, closed_nodes_cost, check_cost, check_only_closed):
+
+    for state,action,step_cost in problem.getSuccessors(parent.state):
+        path_cost = step_cost + parent.path_cost
+        heuristic_cost = heuristic(state, problem)
+        next_node = SearchNode(state, action, path_cost, heuristic_cost, parent)
+        if is_valid_node(next_node, open_nodes_cost, closed_nodes_cost,
+                         check_cost, check_only_closed):
+            open_nodes_cost[next_node] = next_node.cost
+            frontier.put(next_node)
+
 
 def tinyMazeSearch(problem):
     """
