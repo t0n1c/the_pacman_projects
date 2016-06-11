@@ -14,11 +14,11 @@
 
 import sys
 import inspect
-import heapq, random
+import heapq
+import random
 import io
-import queue
 import math
-from collections import namedtuple
+from collections import namedtuple, deque
 from itertools import product
 
 """
@@ -66,50 +66,49 @@ class ComparableMixin(object):
         return not other < self
 
 
-class QueueMixin(object):
-
+class Stack(object):
     def __init__(self):
-        self.queue = list()
+        self.list = []
 
-    def __contains__(self, item):
-        return item in self.queue
+    def put(self,item):
+        self.list.append(item)
+
+    def get(self):
+        return self.list.pop()
 
     def __len__(self):
-        return len(self.queue)
-
-    def __iter__(self):
-        return iter(self.queue)
+        return len(self.list)
 
 
-class LookupList(object):
-    def __init__(self, sequence=None):
-        if sequence is None:
-            sequence = []
-        self.list_ = list(sequence)
-        self.lookup = set(sequence)
+class Queue(object):
+    def __init__(self):
+        self.deque = deque()
 
-    def __contains__(self, element):
-        return element in self.lookup
+    def put(self,item):
+        self.deque.append(item)
 
-    def append(self, element):
-        if element not in self.lookup:
-            self.list_.append(element)
-            self.lookup.add(element)
+    def get(self):
+        return self.deque.popleft()
 
-    def __getitem__(self, index):
-        return self.list_[index]
+    def __len__(self):
+        return len(self.deque)
 
 
-class Stack(queue.LifoQueue, QueueMixin):
-    pass
+class PriorityQueue(object):
 
+    def  __init__(self):
+        self.heap = []
+        self.count = 0
 
-class Queue(queue.Queue, QueueMixin):
-    pass
+    def put(self, item):
+        heapq.heappush(self.heap, item)
 
+    def get(self):
+        item = heapq.heappop(self.heap)
+        return item
 
-class PriorityQueue(queue.PriorityQueue, QueueMixin):
-    pass
+    def __len__(self):
+        return len(self.heap)
 
 
 def get_manhattan_distance(point1, point2):
@@ -170,19 +169,23 @@ def flood_fill(map_, x0, y0, target, *, replacement_value=None, fill=False, eigh
     Exceptions:
         Raise an OutOfBoundsError.
     """
-    region = LookupList()
+    queue = deque()
+    region = set()
     if not _check_bounds(map_, x0, y0):
         raise OutOfBoundsError
     if map_[x0][y0] != target:
-        return []
+        return region
 
-    region.append((x0,y0))
-    for x,y in region:
+    queue.append((x0,y0))
+    region.add((x0,y0))
+    while len(queue) != 0:
+        x,y = queue.popleft()
         for nx,ny in _get_neighbors(x, y, map_, region, target, eight_way):
-            region.append((nx,ny))
+            queue.append((nx,ny))
+            region.add((nx,ny))
         if fill:
             map_[x][y] = replacement_value
-    return list(region)
+    return region
 
 
 def _get_neighbors(x, y, map_, lookup, target, eight_way):
@@ -190,7 +193,6 @@ def _get_neighbors(x, y, map_, lookup, target, eight_way):
         nx,ny = (x+dx, y+dy)
         if _is_filling_point(map_, nx, ny, lookup, target):
             yield (nx,ny)
-
 
 
 def _get_offset(eight_way):
@@ -213,7 +215,7 @@ def _get_offset(eight_way):
 
 
 def _is_filling_point(map_, x, y, lookup, target):
-    return (x,y) not in lookup and _check_bounds(map_, x, y) and  map_[x][y] == target
+    return (x,y) not in lookup and _check_bounds(map_, x, y) and map_[x][y] == target
 
 
 def _check_bounds(map_, x, y):
@@ -866,4 +868,22 @@ def unmutePrint():
 
     sys.stdout = _ORIGINAL_STDOUT
     #sys.stderr = _ORIGINAL_STDERR
+
+
+def main():
+    heap = PriorityQueue()
+    heap.put(5)
+    heap.put(1)
+    heap.put(10)
+    heap.put(1)
+    heap.put(43)
+    print(heap.get(),heap.get())
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
 

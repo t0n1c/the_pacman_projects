@@ -86,12 +86,11 @@ def enhancedFeatureExtractorDigit(datum):
             if not any([(x,y) in region for region in white_regions]):
                 region = util.flood_fill(map_, x, y, 0, eight_way=True)
                 if len(region) != 0:
-                    white_regions.append(set(region))
+                    white_regions.append(region)
 
-    for k in [1,2,3]:
+    for k in [1,2,3]: # 1,2 and 3 continuous white regions
         features[k] = int(k == len(white_regions))
     return features
-
 
 
 def basicFeatureExtractorPacman(state):
