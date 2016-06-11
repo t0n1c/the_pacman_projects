@@ -111,50 +111,51 @@ def nullHeuristic(state, problem=None):
     return 0
 
 
-def is_valid_node(next_node, open_nodes_cost, closed_nodes_cost,
-                      check_cost, check_only_closed):
+def is_valid_node(next_node, open_nodes, closed_nodes,
+                      check_cost, only_closed):
     cost = next_node.cost
-    if check_only_closed:
-        return not next_node in closed_nodes_cost
+    if only_closed:
+        return not next_node in closed_nodes
     # open is a superset of closed
-    less_cost_open = lambda: cost < open_nodes_cost[next_node]
-    return not next_node in open_nodes_cost or check_cost and less_cost_open()
+    less_cost_open = lambda: cost < open_nodes[next_node]
+    return not next_node in open_nodes or check_cost and less_cost_open()
 
 
 
-def generic_search(problem, data_structure, heuristic=nullHeuristic, check_cost=False,
-                   check_only_closed=False):
+def generic_search(problem, frontier_adt, heuristic=nullHeuristic,
+                   check_cost=False, only_closed=False):
 
-    frontier = data_structure()
-    open_nodes_cost = dict()
-    closed_nodes_cost = dict()
+    frontier = frontier_adt()
+    open_nodes = dict()
+    closed_nodes = dict()
     start_state = problem.getStartState()
     start_node = SearchNode(start_state, Directions.STOP, 0, heuristic(start_state,problem))
     frontier.put(start_node)
-    open_nodes_cost[start_node] = start_node.cost
+    open_nodes[start_node] = start_node.cost
 
     while len(frontier) != 0:
         current_node = frontier.get()
-        closed_nodes_cost[current_node] = current_node.cost
+        closed_nodes[current_node] = current_node.cost
         if problem.isGoalState(current_node.state):
             return current_node.construct_actions_path()
         add_successors(problem, current_node, heuristic,
-                       frontier, open_nodes_cost, closed_nodes_cost,
-                       check_cost, check_only_closed)
+                       frontier, open_nodes, closed_nodes,
+                       check_cost, only_closed)
 
     raise SearchError('No more states to search in. No solution found.')
 
 
 def add_successors(problem, parent, heuristic, frontier,
-                   open_nodes_cost, closed_nodes_cost, check_cost, check_only_closed):
+                   open_nodes, closed_nodes, check_cost, only_closed):
 
     for state,action,step_cost in problem.getSuccessors(parent.state):
         path_cost = step_cost + parent.path_cost
         heuristic_cost = heuristic(state, problem)
         next_node = SearchNode(state, action, path_cost, heuristic_cost, parent)
-        if is_valid_node(next_node, open_nodes_cost, closed_nodes_cost,
-                         check_cost, check_only_closed):
-            open_nodes_cost[next_node] = next_node.cost
+        if is_valid_node(next_node, open_nodes, closed_nodes,
+                         check_cost, only_closed):
+            if not only_closed:
+                open_nodes[next_node] = next_node.cost
             frontier.put(next_node)
 
 
@@ -182,7 +183,7 @@ def depthFirstSearch(problem):
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
-    return generic_search(problem, Stack, check_only_closed=True)
+    return generic_search(problem, Stack, only_closed=True)
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
