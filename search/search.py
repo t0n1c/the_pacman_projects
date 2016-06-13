@@ -79,14 +79,14 @@ class SearchNode(ComparableMixin):
         else:
             self.parent = parent
 
-    def actions_generator(self):
+    def _actions_generator(self):
         while self.action != Directions.STOP:
             yield self
             self = self.parent
         return self
 
-    def construct_actions_path(self):
-        return [parent.action for parent in self.actions_generator()][::-1]
+    def construct_actions_seq(self):
+        return [parent.action for parent in self._actions_generator()][::-1]
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):
@@ -122,10 +122,10 @@ def is_valid_node(next_node, open_nodes, closed_nodes,
 
 
 
-def generic_search(problem, frontier_adt, heuristic=nullHeuristic,
+def generic_search(problem, frontier_queue, heuristic=nullHeuristic,
                    check_cost=False, only_closed=False):
 
-    frontier = frontier_adt()
+    frontier = frontier_queue()
     open_nodes = dict()
     closed_nodes = dict()
     start_state = problem.getStartState()
@@ -137,7 +137,7 @@ def generic_search(problem, frontier_adt, heuristic=nullHeuristic,
         current_node = frontier.get()
         closed_nodes[current_node] = current_node.cost
         if problem.isGoalState(current_node.state):
-            return current_node.construct_actions_path()
+            return current_node.construct_actions_seq()
         add_successors(problem, current_node, heuristic,
                        frontier, open_nodes, closed_nodes,
                        check_cost, only_closed)
