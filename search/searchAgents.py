@@ -35,11 +35,10 @@ Good luck and happy searching!
 """
 
 import time
-from heapq import nsmallest
-
+from collections import namedtuple
 
 from ..game import Directions, Agent, Actions
-from ..util import (Point, CornerState, get_manhattan_distance, argmin,
+from ..util import (Point, manhattan_distance, argmin,
                     UnitVectorError, UndefinedSideError)
 from . import search
 
@@ -267,7 +266,7 @@ def euclideanHeuristic(position, problem, info={}):
 #####################################################
 # This portion is incomplete.  Time to write code!  #
 #####################################################
-
+CornerState = namedtuple('CornerState', ['position','hit_corners'])
 
 
 class CornersProblem(search.SearchProblem):
@@ -290,9 +289,8 @@ class CornersProblem(search.SearchProblem):
                 print('Warning: no food in corner ' + str(corner))
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
-        # in initializing the problem
-        reached_corners = self.update_reached_corners(self.startingPosition,[False]*4)
-        self.startState = CornerState(self.startingPosition,reached_corners)
+        hit_corners = tuple(pos == self.startingPosition for pos in self.corners)
+        self.startState = CornerState(self.startingPosition, hit_corners)
 
     def getStartState(self):
         """
@@ -305,11 +303,7 @@ class CornersProblem(search.SearchProblem):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        def is_corner_position():
-            return [c == state.position for c in self.corners].count(True) == 1
-
-        return is_corner_position() and all(state.reached_corners)
-
+        return all(state.hit_corners)
 
     def getSuccessors(self, state):
         """
@@ -330,22 +324,15 @@ class CornersProblem(search.SearchProblem):
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             hitsWall = self.walls[nextx][nexty]
-            next_pos = (nextx,nexty)
+            next_pos = (nextx, nexty)
             if not hitsWall:
-                reached_corners = self.update_reached_corners(next_pos, state.reached_corners)
-                next_state = CornerState(next_pos,reached_corners)
+                corners_state = zip(self.corners, state.hit_corners)
+                hit_corners = [hit or pos == next_pos for pos,hit in corners_state]
+                next_state = CornerState(next_pos, tuple(hit_corners))
                 successors.append((next_state,action,1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
-
-    def update_reached_corners(self, next_pos, current_reached_corners):
-        reached_corners = list(current_reached_corners)
-        try:
-            reached_corners[self.corners.index(next_pos)] = True
-        except ValueError:
-            pass
-        return tuple(reached_corners)
 
     def getCostOfActions(self, actions):
         """
@@ -361,17 +348,14 @@ class CornersProblem(search.SearchProblem):
         return len(actions)
 
 
-def get_manhattan_distance(xy1, xy2):
-    return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
-
-def get_cumulative_cost(position, corners):
+def cumulative_cost(position, corners):
     if len(corners) == 0:
         return 0
-    next_corner = nsmallest(1, corners,key=lambda xy2: get_manhattan_distance(position, xy2))[0]
-    current_cost = get_manhattan_distance(position, next_corner)
-    index = corners.index(next_corner)
-    new_corners =  corners[0:index] + corners[index+1:]
-    return current_cost + get_cumulative_cost(next_corner, new_corners)
+    distances = [manhattan_distance(position, pos) for pos in corners]
+    index = argmin(distances)
+    corner_cost, next_corner = distances[index], corners.pop(index)
+    return corner_cost + cumulative_cost(next_corner, corners)
+
 
 def cornersHeuristic(state, problem):
     """
@@ -389,9 +373,8 @@ def cornersHeuristic(state, problem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
     position = state.position
-    reached_corners = state.reached_corners
-    current_corners = [c for c,reached_c in zip(corners,reached_corners) if not reached_c]
-    return get_cumulative_cost(position, current_corners)
+    unhit_corners = [pos for pos,is_hit in zip(corners,state.hit_corners) if not is_hit]
+    return cumulative_cost(position, unhit_corners)
 
 
 class AStarCornersAgent(SearchAgent):
@@ -485,19 +468,14 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, food_grid = state
+    def number_of_food():
+        return food_grid.count()
 
-    distances_to_food = [(i, get_manhattan_distance(position, i)) for i in food_grid.asList()]
-    furthest_food_distance = max(distances_to_food, key=lambda pair: pair[1], default=(0.0,0.0))[1]
+    def max_distance():
+        distances = [manhattan_distance(position, food_pos) for food_pos in food_grid.asList()]
+        return max(distances, default=0)
 
-    #input(problem.walls[1][1])
-    #TEMP hardcoded
-    # if any([food_grid[x][y] for x,y in [(14,5)]]):
-    #     return max(abs(position[0] - 14) + food_grid.count(),distance)
-    # elif any([food_grid[x][y] for x,y in [(1,4),(1,5)]]):
-    #     return max(abs(position[0] - 1) + food_grid.count(),distance)
-    # else:
-    return max(furthest_food_distance, food_grid.count())
-
+    return max(max_distance(), number_of_food())
 
 
 class ClosestDotSearchAgent(SearchAgent):

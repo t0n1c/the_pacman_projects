@@ -19,7 +19,7 @@ import sys
 
 from ..game import Directions, Agent
 from .. import util
-from ..util import get_euclidean_distance as get_distance, SearchError, all_argmax
+from ..util import euclidean_distance as get_distance, SearchError, all_argmax
 
 from ..search.search import uniformCostSearch, aStarSearch
 from ..search.searchAgents import AnyFoodSearchProblem, PositionSearchProblem, manhattanHeuristic

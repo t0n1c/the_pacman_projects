@@ -64,9 +64,6 @@ class SearchProblem:
         raiseNotDefined()
 
 
-class SearchFailure(Exception):
-    pass
-
 class SearchNode(ComparableMixin):
     def __init__(self, state, action, path_cost, heuristic_cost, parent=None):
         self.state = state

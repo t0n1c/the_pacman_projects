@@ -25,14 +25,13 @@ from itertools import product
  Data structures useful for implementing SearchAgents
 """
 
-CornerState = namedtuple('CornerState', ['position','reached_corners'])
 BasePoint = namedtuple('BasePoint', ['x', 'y'])
 
 class Point(BasePoint):
     """A namedtuple Point class with add/sub capabilities."""
 
-    def __new__(cls, x, y, is_int=False):
-        if is_int:
+    def __new__(cls, x, y, to_int=False):
+        if to_int:
             x,y = int(x),int(y)
         return super().__new__(cls, x, y)
 
@@ -111,11 +110,11 @@ class PriorityQueue(object):
         return len(self.heap)
 
 
-def get_manhattan_distance(point1, point2):
-    return abs(point1.x - point2.x) + abs(point1.y - point2.y)
+def manhattan_distance(point1, point2):
+    return sum([abs(c1 - c2) for c1,c2 in zip(point1, point2)])
 
 
-def get_euclidean_distance(point1, point2):
+def euclidean_distance(point1, point2):
     return math.sqrt(sum((c1-c2)**2 for c1,c2 in zip(point1, point2)))
 
 
