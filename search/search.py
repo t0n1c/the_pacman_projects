@@ -97,7 +97,10 @@ class SearchNode(ComparableMixin):
         return hash(self.state)
 
     def __str__(self):
-        return str(self.state)
+        pattern = '(State={0}, Action={1}, Path cost={2}, Heuristic cost={3}, Total cost={4})'
+        return type(self).__name__ + pattern.format(self.state, self.action,
+                                                    self.path_cost, self.heuristic_cost,
+                                                    self.cost)
 
 
 def nullHeuristic(state, problem=None):
@@ -109,7 +112,7 @@ def nullHeuristic(state, problem=None):
 
 
 def is_valid_node(next_node, open_nodes, closed_nodes,
-                      check_cost, only_closed):
+                  check_cost, only_closed):
     cost = next_node.cost
     if only_closed:
         return not next_node in closed_nodes
