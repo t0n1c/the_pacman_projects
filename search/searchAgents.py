@@ -352,9 +352,8 @@ def cumulative_cost(position, corners):
     if len(corners) == 0:
         return 0
     distances = [manhattan_distance(position, pos) for pos in corners]
-    index = argmin(distances)
-    corner_cost, next_corner = distances[index], corners.pop(index)
-    return corner_cost + cumulative_cost(next_corner, corners)
+    next_corner = corners.pop(argmin(distances))
+    return min(distances) + cumulative_cost(next_corner, corners)
 
 
 def cornersHeuristic(state, problem):
