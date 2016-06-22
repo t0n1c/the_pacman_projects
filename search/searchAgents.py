@@ -39,7 +39,7 @@ from collections import namedtuple
 
 from ..game import Directions, Agent, Actions
 from ..util import (Point, manhattan_distance, argmin,
-                    UnitVectorError, UndefinedSideError)
+                    UnitVectorError, UndefinedSideError, CornersLengthError)
 from . import search
 
 class GoWestAgent(Agent):
@@ -348,12 +348,50 @@ class CornersProblem(search.SearchProblem):
         return len(actions)
 
 
-def cumulative_cost(position, corners):
-    if len(corners) == 0:
-        return 0
+# def cumulative_cost(position, corners):
+#      # corners == unhit_corners
+#     if len(corners) == 0:
+#         return 0
+#     distances = [manhattan_distance(position, pos) for pos in corners]
+#     next_corner = corners.pop(argmin(distances))
+#     return min(distances) + cumulative_cost(next_corner, corners)
+
+
+def _middle_corner(corners):
+    """Given three points return the point which has the same
+    coordinate x than one of the other two points and
+    the same y that the remaining point"""
+    if len(corners) != 3:
+        raise CornersLengthError('Corners length must be exactly three.')
+    for i,(x,y) in enumerate(corners):
+        xs,ys = zip(*(corners[0:i] + corners[i+1:]))
+        if x in xs and y in ys:
+            return x,y
+
+
+def manh_path_cost(position, corners, width, height):
+    """Return the distance from position to the closest corner plus the distance
+    the remaining.
+
+    Args:
+        position: Initial Pacman position in a given instant.
+        corners: A 4-tuple with the corners coordinates.
+        width: Width of the fictitious inner rectangle formed by the corners .
+        height: Height of the fictitious inner rectangle formed by the corners self.
+    """
+    semiperimeter = width + height
+    # perimeter of a rectangle with one of its longest sides removed
+    ushaped_perimeter = min(width, height)*2 + max(width, height)
     distances = [manhattan_distance(position, pos) for pos in corners]
-    next_corner = corners.pop(argmin(distances))
-    return min(distances) + cumulative_cost(next_corner, corners)
+    if len(corners) < 2:
+        return min(distances, default=0)
+    if len(corners) == 2:
+        return min(distances) + manhattan_distance(*corners)
+    if len(corners) == 3:
+        return min([d + semiperimeter-2 for c,d in zip(corners, distances)
+                    if c != _middle_corner(corners)])
+    if len(corners) == 4:
+        return min([d + ushaped_perimeter-3 for d in distances])
 
 
 def cornersHeuristic(state, problem):
@@ -369,11 +407,11 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
-    corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-    position = state.position
+    corners = problem.corners
+    walls = problem.walls
+    width,height = walls.width-2,walls.height-2 # inner rectangle w and h
     unhit_corners = [pos for pos,is_hit in zip(corners,state.hit_corners) if not is_hit]
-    return cumulative_cost(position, unhit_corners)
+    return manh_path_cost(state.position, unhit_corners, width, height)
 
 
 class AStarCornersAgent(SearchAgent):

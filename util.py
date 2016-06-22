@@ -97,7 +97,6 @@ class PriorityQueue(object):
 
     def  __init__(self):
         self.heap = []
-        self.count = 0
 
     def put(self, item):
         heapq.heappush(self.heap, item)
@@ -222,7 +221,7 @@ def _check_bounds(map_, x, y):
     return 0 <= x < width and 0 <= y < height
 
 
-# Custom exceptions
+# Custom exceptions and warnings
 
 class SearchError(Exception):
     pass
@@ -236,6 +235,8 @@ class UndefinedSideError(Exception):
 class OutOfBoundsError(Exception):
     pass
 
+class CornersLengthError(Exception):
+    pass
 
 class FixedRandom:
     def __init__(self):
