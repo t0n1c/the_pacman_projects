@@ -162,7 +162,7 @@ def add_successors(problem, parent, heuristic, frontier,
     for state,action,step_cost in problem.getSuccessors(parent.state):
         path_cost = step_cost + parent.path_cost
         heuristic_cost = heuristic(state, problem)
-        next_node = SearchNode(state, action, path_cost, heuristic_cost, parent)
+        next_node = SearchNode(state, action, path_cost, heuristic_cost, parent=parent)
         if is_valid_node(next_node, open_nodes, closed_nodes,
                          check_cost, only_closed):
             if not only_closed:
