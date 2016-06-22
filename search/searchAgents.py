@@ -371,7 +371,7 @@ def _middle_corner(corners):
 
 def manh_path_cost(position, corners, width, height):
     """Return the distance from position to the closest corner plus the distance
-    the remaining.
+    of going over the remaining corners.
 
     Args:
         position: Initial Pacman position in a given instant.
