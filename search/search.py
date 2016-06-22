@@ -65,7 +65,7 @@ class SearchProblem:
 
 
 class SearchNode(ComparableMixin):
-    def __init__(self, state, action, path_cost, heuristic_cost, parent=None):
+    def __init__(self, state, action, path_cost, heuristic_cost, *, parent=None):
         self.state = state
         self.action = action
         self.path_cost = path_cost
@@ -101,6 +101,17 @@ class SearchNode(ComparableMixin):
         return type(self).__name__ + pattern.format(self.state, self.action,
                                                     self.path_cost, self.heuristic_cost,
                                                     self.cost)
+
+
+class UpTieBreakSearchNode(SearchNode):
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+    def __lt__(self, other):
+        if self.cost == other.cost:
+            return self.path_cost > other.path_cost
+        return super().__lt__(other)
 
 
 def nullHeuristic(state, problem=None):
