@@ -78,7 +78,7 @@ class Configuration:
     """
 
     def __init__(self, pos, direction):
-        self.pos = Point(*pos)
+        self.pos = pos
         self.direction = direction
 
     def getPosition(self):
