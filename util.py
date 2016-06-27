@@ -205,7 +205,7 @@ def _get_offset(eight_way):
     offset = [-1, 0, 1]
     for x,y in product(offset, offset):
         if eight_way:
-            if x!=0 or y!=0:
+            if (x,y) != (0,0):
                 yield x,y
         else:
             if abs(x) != abs(y):

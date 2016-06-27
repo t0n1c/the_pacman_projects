@@ -68,7 +68,7 @@ class MiraClassifier:
             accuracy = _get_accuracy(weights, validation_data, validation_labels)
             if accuracy > max_accuracy:
                 max_accuracy = accuracy
-                best_weights = weights.copy()
+                best_weights = weights
         self.weights = best_weights
 
 
@@ -89,7 +89,7 @@ class MiraClassifier:
 
     def _train_classifier(self, data, labels, c_bound):
         """Return a weight vector trained over the given data set and the upper bound
-        (constant C in MIRA).
+        (constant C in MIRA) of the step size (learning-rate like).
 
         Args:
             data: Training examples (features).
@@ -129,7 +129,8 @@ def _predict_label(weights, features):
 
 
 def _scale_features(features, label, predicted_label, weights, c_bound):
-    """Return the feature vector scaled.
+    """Return the feature vector step sized. It is intended to smooth the weight
+    update in MIRA (minimum correcting update). Don't confuse with feature scaling.
 
     Args:
         features: Vector of features for a particular training example.
