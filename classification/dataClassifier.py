@@ -138,10 +138,10 @@ def enhancedPacmanFeatures(state, action):
 
     ghost_positions = successor.getGhostPositions()
     ghost_distances = [util.manhattanDistance(pos, pacman_pos) for pos in ghost_positions]
+    food_dis = [util.manhattanDistance(pos, pacman_pos) for pos in successor.getFood().asList()]
 
-
-    features['min_ghost_dist'] = min(ghost_distances)
-
+    features['min_ghost_dist'] = 1/(min(ghost_distances)+1)
+    features['min_food_dist'] = 1/(min(food_dis, default=0)+1)
 
     return features
 
