@@ -42,6 +42,7 @@ The keys are 'a', 's', 'd', and 'w' to move (or arrow keys).  Have fun!
 import sys, types, time, random, os
 import importlib
 from os.path import dirname, join
+from copy import deepcopy
 
 from .util import nearestPoint, manhattanDistance
 from .game import GameStateData, Game, Directions, Actions
@@ -635,6 +636,7 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
 
     for i in range( numGames ):
         beQuiet = i < numTraining
+        agent_copy = deepcopy(pacman)
         if beQuiet:
                 # Suppress output and graphics
             gameDisplay = textDisplay.NullGraphics()
@@ -653,6 +655,7 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
             components = {'layout': layout, 'actions': game.moveHistory}
             pickle.dump(components, f)
             f.close()
+        pacman = agent_copy
 
     if (numGames-numTraining) > 0:
         scores = [game.state.getScore() for game in games]
