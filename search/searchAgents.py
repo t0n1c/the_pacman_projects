@@ -363,8 +363,9 @@ def _middle_corner(corners):
     the same y that the remaining point"""
     if len(corners) != 3:
         raise CornersLengthError('Corners length must be exactly three.')
-    for i,(x,y) in enumerate(corners):
-        xs,ys = zip(*(corners[0:i] + corners[i+1:]))
+    for x,y in corners:
+        rest = set(corners) - set([(x,y)])
+        xs,ys = zip(*rest)
         if x in xs and y in ys:
             return x,y
 
