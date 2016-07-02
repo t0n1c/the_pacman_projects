@@ -49,7 +49,7 @@ class ReflexAgent(Agent):
 
     def __init__(self):
         super().__init__()
-        self.precomputed_actions = list()
+        self.pre_actions = list()
 
     def getAction(self, gameState):
         """
@@ -65,18 +65,18 @@ class ReflexAgent(Agent):
         # Choose one of the best actions
         scores = [self.evaluationFunction(gameState, action) for action in legal_moves]
 
-        if len(self.precomputed_actions) > 0: # fixed actions mode
-            if self.precomputed_actions[0] in get_dangerous_actions(legal_moves, scores):
-                self.precomputed_actions = list()
+        if len(self.pre_actions) > 0: # fixed actions mode
+            if self.pre_actions[0] in dangerous_actions(legal_moves, scores):
+                self.pre_actions = list()
             else:
-                return self.precomputed_actions.pop(0)
+                return self.pre_actions.pop(0)
 
         best_score = max(scores)
         best_indices = [index for index in range(len(scores)) if scores[index] == best_score]
         chosen_index = random.choice(best_indices) # Pick randomly among the best
         return legal_moves[chosen_index]
 
-    def evaluationFunction(self, current_game_state, action):
+    def evaluationFunction(self, game_state, action):
         """
         Design a better evaluation function here.
 
@@ -93,17 +93,15 @@ class ReflexAgent(Agent):
         """
         # Useful information you can extract from a GameState (pacman.py)
 
-        successor_game_state = current_game_state.generatePacmanSuccessor(action)
-        methods_names = ['getPacmanPosition','getFood','getGhostStates']
-        new_info_state = [getattr(successor_game_state, name)() for name in methods_names]
-        pacman_pos, food, ghost_states = new_info_state
+        successor = game_state.generatePacmanSuccessor(action) # game state successor
+        pacman_pos = successor.getPacmanPosition()
+        ghosts_info = [(g.getPosition(), g.scaredTimer) for g in successor.getGhostStates()]
 
-        ghost_infos = [(g.getPosition(),g.scaredTimer) for g in ghost_states]
-        current_capsules = current_game_state.getCapsules()
-        kwargs_psp = dict(gameState=current_game_state, warn=False)
-        scared_ghosts = [tuple(map(int, xy)) for xy,timer in ghost_infos if timer > 0.1]
+        current_capsules = game_state.getCapsules()
+        kwargs_psp = dict(gameState=game_state, warn=False)
+        scared_ghosts_ = scared_ghosts(ghosts_info)
 
-        if not is_pacman_safe(pacman_pos, ghost_infos):
+        if not is_pacman_safe(pacman_pos, ghosts_info):
             return float('-Inf')
 
         elif action == 'Stop':
@@ -113,28 +111,27 @@ class ReflexAgent(Agent):
             return 1
 
         elif is_any_capsule_close(pacman_pos, current_capsules, CAPSULE_THR):
-            self.precomputed_actions =get_capsule_actions(pacman_pos,current_capsules,**kwargs_psp)
+            self.pre_actions = capsule_actions(pacman_pos,current_capsules,**kwargs_psp)
             return MAX_PENALTY - 1
 
-        elif len(scared_ghosts) > 0:
-            self.precomputed_actions = get_scared_ghost_actions(scared_ghosts, **kwargs_psp)
+        elif len(scared_ghosts_) > 0:
+            self.pre_actions = scared_ghost_actions(scared_ghosts_, **kwargs_psp)
             return MAX_PENALTY - 1
 
         else:
-            return -get_distance_to_closest_food(pacman_pos, successor_game_state,
-                                                 current_game_state.getFood())
+            return -distance_to_closest_food(pacman_pos, successor, game_state.getFood())
 
 
 
-def is_pacman_safe(pacman_pos, ghost_infos):
-    check_timers = (scared_timer > 0 for _,scared_timer in ghost_infos)
-    check_pos = (get_distance(pacman_pos, p2) > DANGER_THR for p2,_ in ghost_infos)
+def is_pacman_safe(pacman_pos, ghosts_info):
+    check_timers = (scared_timer > 0 for _,scared_timer in ghosts_info)
+    check_pos = (get_distance(pacman_pos, p2) > DANGER_THR for p2,_ in ghosts_info)
     return all(cond1 or cond2 for cond1,cond2 in zip(check_timers,check_pos))
 
 
-def get_distances_to_ghosts(pacman_pos, ghost_infos):
+def get_distances_to_ghosts(pacman_pos, ghosts_info):
     distances = list()
-    for pos,_ in ghost_infos:
+    for pos,_ in ghosts_info:
         distance = get_distance(pacman_pos, pos)
         if distance < DANGER_THR+1:
             distances.append(distance)
@@ -149,15 +146,18 @@ def is_any_capsule_close(pacman_pos, capsules, threshold):
     return any([get_distance(pacman_pos, c_pos) <= threshold for c_pos in capsules])
 
 
-def get_capsule_actions(pacman_pos, capsules, **kwargs_psp):
-    """Closest capsule set of actions
+def capsule_actions(pacman_pos, capsules, **kwargs_psp):
+    """Return a set of actions that leads to the closest capsule.
     """
-    capsule_pos = get_closest_capsule(pacman_pos, capsules)
+    capsule_pos = closest_capsule(pacman_pos, capsules)
     problem = PositionSearchProblem(goal=capsule_pos, **kwargs_psp)
     return aStarSearch(problem, manhattanHeuristic)
 
 
-def get_scared_ghost_actions(scared_ghosts, **kwargs_psp):
+def scared_ghosts(ghosts_info):
+    return [tuple(map(int, xy)) for xy,timer in ghosts_info if timer > 0.1]
+
+def scared_ghost_actions(scared_ghosts, **kwargs_psp):
     """Closest scared ghost set of actions"""
     problems = [PositionSearchProblem(goal=xy, **kwargs_psp) for xy in scared_ghosts]
     ghostbuster_ways = [aStarSearch(problem, manhattanHeuristic) for problem in problems]
@@ -172,20 +172,20 @@ def get_first_food_actions(game_state):
         return list()
 
 
-def get_closest_capsule(pacman_pos, capsules):
+def closest_capsule(pacman_pos, capsules):
     all_distances = [(get_distance(pacman_pos, c_pos)) for c_pos in capsules]
     return capsules[all_distances.index(min(all_distances))]
 
 
-def get_dangerous_actions(legal_moves, scores):
+def dangerous_actions(legal_moves, scores):
     return [m for m,s in zip(legal_moves,scores) if s == float('-Inf')]
 
 
-def get_distance_to_closest_food(pacman_pos, successor_game_state, current_maze_food):
+def distance_to_closest_food(pacman_pos, successor, current_maze_food):
     new_x, new_y = pacman_pos
     if current_maze_food[new_x][new_y]:
         return 0
-    return len(get_first_food_actions(successor_game_state))
+    return len(get_first_food_actions(successor))
 
 
 
@@ -379,32 +379,32 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         return minmax_fn, next_agent_index, depth
 
 
-def betterEvaluationFunction(current_game_state):
+def betterEvaluationFunction(game_state):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
     """
     methods_names = ['getPacmanPosition','getFood','getGhostStates']
-    new_info_state = [getattr(current_game_state, name)() for name in methods_names]
+    new_info_state = [getattr(game_state, name)() for name in methods_names]
     pacman_pos, food, ghost_states = new_info_state
 
-    ghost_infos = [(g.getPosition(),g.scaredTimer) for g in ghost_states]
-    current_capsules = current_game_state.getCapsules()
-    kwargs_psp = dict(gameState=current_game_state, warn=False)
-    scared_ghosts = [tuple(map(int, xy)) for xy,timer in ghost_infos if timer > 0.1]
+    ghosts_info = [(g.getPosition(),g.scaredTimer) for g in ghost_states]
+    current_capsules = game_state.getCapsules()
+    kwargs_psp = dict(gameState=game_state, warn=False)
+    scared_ghosts = [tuple(map(int, xy)) for xy,timer in ghosts_info if timer > 0.1]
 
-    if not is_pacman_safe(pacman_pos, ghost_infos):
-        distances = get_distances_to_ghosts(pacman_pos, ghost_infos)
+    if not is_pacman_safe(pacman_pos, ghosts_info):
+        distances = get_distances_to_ghosts(pacman_pos, ghosts_info)
         if 0.0 in distances:
             return -MAX_PENALTY
         return -MAX_PENALTY + sum(distances)/len(distances)
 
     elif len(scared_ghosts) > 0:
-        return 100 + current_game_state.getScore() - len(get_scared_ghost_actions(scared_ghosts, **kwargs_psp))
+        return 100 + game_state.getScore() - len(scared_ghost_actions(scared_ghosts, **kwargs_psp))
 
     else:
-        return current_game_state.getScore() - (get_distance_to_closest_food(pacman_pos, current_game_state,current_game_state.getFood()))**0.5
+        return game_state.getScore() - (distance_to_closest_food(pacman_pos, game_state,game_state.getFood()))**0.5
 
 # Abbreviation
 better = betterEvaluationFunction
