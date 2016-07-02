@@ -16,6 +16,7 @@
 import random
 import os
 import sys
+from collections import deque
 
 from ..game import Directions, Agent
 from .. import util
@@ -49,7 +50,7 @@ class ReflexAgent(Agent):
 
     def __init__(self):
         super().__init__()
-        self.pre_actions = list()
+        self.pre_actions = deque()
 
     def getAction(self, gameState):
         """
@@ -67,9 +68,9 @@ class ReflexAgent(Agent):
 
         if len(self.pre_actions) > 0: # fixed actions mode
             if self.pre_actions[0] in dangerous_actions(legal_moves, scores):
-                self.pre_actions = list()
+                self.pre_actions = deque()
             else:
-                return self.pre_actions.pop(0)
+                return self.pre_actions.popleft()
 
         best_score = max(scores)
         best_indices = [index for index in range(len(scores)) if scores[index] == best_score]
@@ -111,11 +112,11 @@ class ReflexAgent(Agent):
             return 1
 
         elif is_any_capsule_close(pacman_pos, current_capsules, CAPSULE_THR):
-            self.pre_actions = capsule_actions(pacman_pos,current_capsules,**kwargs_psp)
+            self.pre_actions = deque(capsule_actions(pacman_pos,current_capsules,**kwargs_psp))
             return MAX_PENALTY - 1
 
         elif len(scared_ghosts_) > 0:
-            self.pre_actions = scared_ghost_actions(scared_ghosts_, **kwargs_psp)
+            self.pre_actions = deque(scared_ghost_actions(scared_ghosts_, **kwargs_psp))
             return MAX_PENALTY - 1
 
         else:
