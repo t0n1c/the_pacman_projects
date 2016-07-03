@@ -52,19 +52,20 @@ class ReflexAgent(Agent):
         super().__init__()
         self.pre_actions = deque()
 
-    def getAction(self, gameState):
+    def getAction(self, game_state):
         """
         You do not need to change this method, but you're welcome to.
 
         getAction chooses among the best options according to the evaluation function.
 
-        Just like in the previous project, getAction takes a GameState and returns
+        Just like in the previous project, getAction takes a game_state and returns
         some Directions.X for some X in the set {North, South, West, East, Stop}
         """
         # Collect legal moves and successor states
-        legal_moves = gameState.getLegalActions()
+
+        legal_moves = game_state.getLegalActions()
         # Choose one of the best actions
-        scores = [self.evaluationFunction(gameState, action) for action in legal_moves]
+        scores = [self.evaluationFunction(game_state, action) for action in legal_moves]
 
         if len(self.pre_actions) > 0: # fixed actions mode
             if self.pre_actions[0] in dangerous_actions(legal_moves, scores):
@@ -111,7 +112,7 @@ class ReflexAgent(Agent):
         elif is_capsule(pacman_pos, current_capsules):
             return 1
 
-        elif is_any_capsule_close(pacman_pos, current_capsules, CAPSULE_THR):
+        elif is_any_capsule_close(pacman_pos, current_capsules):
             self.pre_actions = deque(capsule_actions(pacman_pos,current_capsules,**kwargs_psp))
             return MAX_PENALTY - 1
 
@@ -143,7 +144,7 @@ def is_capsule(pacman_pos, capsules):
     return is_any_capsule_close(pacman_pos, capsules, 0.0)
 
 
-def is_any_capsule_close(pacman_pos, capsules, threshold):
+def is_any_capsule_close(pacman_pos, capsules, threshold=CAPSULE_THR):
     return any([get_distance(pacman_pos, c_pos) <= threshold for c_pos in capsules])
 
 
