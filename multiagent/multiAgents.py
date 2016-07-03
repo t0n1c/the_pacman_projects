@@ -122,7 +122,6 @@ class ReflexAgent(Agent):
             return -distance_to_closest_food(pacman_pos, successor, game_state.getFood())
 
 
-
 def is_pacman_safe(pacman_pos, ghosts_info):
     check_timers = (scared_timer > 0 for _,scared_timer in ghosts_info)
     check_pos = (get_distance(pacman_pos, p2) > DANGER_THR for p2,_ in ghosts_info)
@@ -153,6 +152,7 @@ def capsule_actions(pacman_pos, capsules, **kwargs_psp):
 def scared_ghosts(ghosts_info):
     return [(int(x),int(y)) for (x,y),timer in ghosts_info if timer > 0.1]
 
+
 def scared_ghost_actions(scared_ghosts, **kwargs_psp):
     """Closest scared ghost set of actions"""
     problems = [PositionSearchProblem(goal=xy, **kwargs_psp) for xy in scared_ghosts]
@@ -182,7 +182,6 @@ def distance_to_closest_food(pacman_pos, successor, current_maze_food):
     if current_maze_food[new_x][new_y]:
         return 0
     return len(first_food_actions(successor))
-
 
 
 def scoreEvaluationFunction(currentGameState):
