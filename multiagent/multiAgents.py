@@ -29,7 +29,8 @@ from ..search.searchAgents import AnyFoodSearchProblem, PositionSearchProblem, m
 # THR stands for THRESHOLD
 DANGER_THR = 1.0
 CAPSULE_THR = 2.0
-MAX_PENALTY = 99999999
+MAX_SCORE = 99999999
+MIN_SCORE = -MAX_SCORE
 
 
 # https://inst.eecs.berkeley.edu/~cs188/fa10/slides/FA10%20cs188%20lecture%202%20--%20uninformed%20search%20(6PP).pdf
@@ -107,18 +108,18 @@ class ReflexAgent(Agent):
             return float('-Inf')
 
         elif action == 'Stop':
-            return -(MAX_PENALTY + 1)
+            return MIN_SCORE
 
         elif is_capsule(pacman_pos, current_capsules):
             return 1
 
         elif is_any_capsule_close(pacman_pos, current_capsules):
             self.pre_actions = deque(capsule_actions(pacman_pos,current_capsules,**kwargs_psp))
-            return MAX_PENALTY - 1
+            return MAX_SCORE
 
         elif len(scared_ghosts_) > 0:
             self.pre_actions = deque(scared_ghost_actions(scared_ghosts_, **kwargs_psp))
-            return MAX_PENALTY - 1
+            return MAX_SCORE
 
         else:
             return -distance_to_closest_food(pacman_pos, successor, game_state.getFood())
@@ -399,8 +400,8 @@ def betterEvaluationFunction(game_state):
     if not is_pacman_safe(pacman_pos, ghosts_info):
         distances = get_distances_to_ghosts(pacman_pos, ghosts_info)
         if 0.0 in distances:
-            return -MAX_PENALTY
-        return -MAX_PENALTY + sum(distances)/len(distances)
+            return MIN_SCORE
+        return MIN_SCORE + sum(distances)/len(distances)
 
     elif len(scared_ghosts) > 0:
         return 100 + game_state.getScore() - len(scared_ghost_actions(scared_ghosts, **kwargs_psp))
