@@ -151,7 +151,7 @@ def capsule_actions(pacman_pos, capsules, **kwargs_psp):
 
 
 def scared_ghosts(ghosts_info):
-    return [tuple(map(int, xy)) for xy,timer in ghosts_info if timer > 0.1]
+    return [(int(x),int(y)) for (x,y),timer in ghosts_info if timer > 0.1]
 
 def scared_ghost_actions(scared_ghosts, **kwargs_psp):
     """Closest scared ghost set of actions"""
@@ -160,7 +160,7 @@ def scared_ghost_actions(scared_ghosts, **kwargs_psp):
     return min(ghostbuster_ways, key=len)
 
 
-def get_first_food_actions(game_state):
+def first_food_actions(game_state):
     problem = AnyFoodSearchProblem(game_state)
     try:
         return uniformCostSearch(problem)
@@ -181,7 +181,7 @@ def distance_to_closest_food(pacman_pos, successor, current_maze_food):
     new_x, new_y = pacman_pos
     if current_maze_food[new_x][new_y]:
         return 0
-    return len(get_first_food_actions(successor))
+    return len(first_food_actions(successor))
 
 
 
