@@ -110,11 +110,8 @@ class ReflexAgent(Agent):
         elif action == 'Stop':
             return MIN_SCORE
 
-        elif is_capsule(pacman_pos, current_capsules):
-            return 1
-
         elif is_any_capsule_close(pacman_pos, current_capsules):
-            self.pre_actions = deque(capsule_actions(pacman_pos,current_capsules,**kwargs_psp))
+            self.pre_actions = deque(capsule_actions(pacman_pos, current_capsules, **kwargs_psp))
             return MAX_SCORE
 
         elif len(scared_ghosts_) > 0:
@@ -139,10 +136,6 @@ def get_distances_to_ghosts(pacman_pos, ghosts_info):
         if distance < DANGER_THR+1:
             distances.append(distance)
     return distances
-
-
-def is_capsule(pacman_pos, capsules):
-    return is_any_capsule_close(pacman_pos, capsules, 0.0)
 
 
 def is_any_capsule_close(pacman_pos, capsules, threshold=CAPSULE_THR):
