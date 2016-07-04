@@ -377,11 +377,11 @@ def manh_path_cost(position, corners, width, height):
     Args:
         position: Initial Pacman position in a given instant.
         corners: A 4-tuple with the corners coordinates.
-        width: Width of the fictitious inner rectangle formed by the corners .
-        height: Height of the fictitious inner rectangle formed by the corners self.
+        width: Width of the fictitious inner rectangle formed by the corners.
+        height: Height of the fictitious inner rectangle formed by the corners.
     """
     semiperimeter = width + height
-    # perimeter of a rectangle with one of its longest sides removed
+    # perimeter of a rectangle with one of its longest sides removed, hence U-shaped
     ushaped_perimeter = min(width, height)*2 + max(width, height)
     distances = [manhattan_distance(position, pos) for pos in corners]
     if len(corners) < 2:
