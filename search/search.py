@@ -105,8 +105,8 @@ class SearchNode(ComparableMixin):
 
 class UpTieBreakSearchNode(SearchNode):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def __lt__(self, other):
         if self.cost == other.cost:
